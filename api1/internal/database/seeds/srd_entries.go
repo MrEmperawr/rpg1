@@ -1451,5 +1451,54 @@ func GetSRDEntries() []srd.SRDEntry {
 			Category: "Combat",
 			Version:  1,
 		},
+		// Equipment Rules
+		{
+			ID:       uuid.New(),
+			Title:    "Equipment Overview",
+			Category: "Equipment",
+			Version:  1,
+		},
+		{
+			ID:       uuid.New(),
+			Title:    "Weapon Rules",
+			Category: "Equipment",
+			Version:  1,
+		},
+		{
+			ID:       uuid.New(),
+			Title:    "Armor Rules",
+			Category: "Equipment",
+			Version:  1,
+		},
+		{
+			ID:       uuid.New(),
+			Title:    "Equipment Quality and Rarity",
+			Category: "Equipment",
+			Version:  1,
+		},
+		{
+			ID:       uuid.New(),
+			Title:    "Weapon Modifications",
+			Category: "Equipment",
+			Version:  1,
+		},
+		{
+			ID:       uuid.New(),
+			Title:    "Armor Modifications",
+			Category: "Equipment",
+			Version:  1,
+		},
+		{
+			ID:       uuid.New(),
+			Title:    "Obtaining and Selling Equipment",
+			Category: "Equipment",
+			Version:  1,
+		},
+		{
+			ID:       uuid.New(),
+			Title:    "Encumbrance and Carrying Capacity",
+			Category: "Equipment",
+			Version:  1,
+		},
 	}
 }

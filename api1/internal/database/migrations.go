@@ -4,9 +4,6 @@ import (
 	"log"
 
 	"github.com/mremperor-atwork/rpg1/api1/internal/database/seeds"
-	"github.com/mremperor-atwork/rpg1/api1/internal/features/game"
-	"github.com/mremperor-atwork/rpg1/api1/internal/features/srd"
-	"github.com/mremperor-atwork/rpg1/api1/internal/models"
 	"gorm.io/gorm"
 )
 
@@ -14,36 +11,10 @@ import (
 func RunMigrations(db *gorm.DB) error {
 	log.Println("Running database migrations...")
 
-	// Auto-migrate all models
+	// Auto-migrate only new models (existing tables are managed manually)
 	err := db.AutoMigrate(
-		// Shared models
-		&models.User{},
-		&models.Campaign{},
-		&models.Character{},
-		&models.Species{},
-
-		// SRD models
-		&srd.Language{},
-		&srd.SRDEntry{},
-		&srd.SRDContent{},
-		&srd.Attribute{},
-		&srd.Skill{},
-		&srd.SkillSpecialty{},
-		&srd.Quality{},
-		&srd.Equipment{},
-		&srd.CharacterCreationRule{},
-		&srd.RuleVersion{},
-		&srd.Spell{},
-		&srd.Condition{},
-		&srd.VirtueVice{},
-
-		// Game models
-		&game.CharacterAttribute{},
-		&game.CharacterSkill{},
-		&game.CharacterSkillSpecialty{},
-		&game.CharacterQuality{},
-		&game.CharacterEquipment{},
-		&game.CharacterDerivedStats{},
+		// Only migrate equipment_items - other tables already exist
+		&seeds.EquipmentItem{},
 	)
 
 	if err != nil {

@@ -18,7 +18,11 @@ func Connect(dsn string) error {
 		Logger: logger.Default.LogMode(logger.Info), // Set to logger.Silent in production
 	}
 
-	DB, err = gorm.Open(postgres.Open(dsn), gormConfig)
+	// Configure postgres driver to use lib/pq instead of pgx
+	DB, err = gorm.Open(postgres.New(postgres.Config{
+		DSN:        dsn,
+		DriverName: "postgres", // This forces use of lib/pq
+	}), gormConfig)
 	if err != nil {
 		return fmt.Errorf("failed to connect to database: %w", err)
 	}

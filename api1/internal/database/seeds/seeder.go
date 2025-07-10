@@ -3,6 +3,7 @@ package seeds
 import (
 	"fmt"
 	"log"
+	"strings"
 
 	"github.com/google/uuid"
 	"github.com/mremperor-atwork/rpg1/api1/internal/features/srd"
@@ -37,6 +38,7 @@ func (s *Seeder) SeedAll() error {
 		{"Skill Specialties", s.seedSkillSpecialties, false},
 		{"Qualities", s.seedQualities, false},
 		{"Equipment", s.seedEquipment, false},
+		{"Equipment Items", s.seedEquipmentItems, false},
 		{"SRD Entries", s.SeedSRDEntries, false},
 		{"Spells", s.seedSpells, false},
 		{"Conditions", s.seedConditions, false},
@@ -63,20 +65,29 @@ func (s *Seeder) SeedAll() error {
 // seedAttributes seeds the base attributes
 func (s *Seeder) seedAttributes() error {
 	var count int64
-	s.db.Model(&srd.Attribute{}).Count(&count)
-	if count > 0 {
+	if err := s.db.Model(&srd.Attribute{}).Count(&count).Error; err != nil {
+		// If we can't count, assume table exists and try to seed anyway
+		log.Println("   ⚠️  Could not check attribute count, proceeding with seeding...")
+	} else if count > 0 {
 		log.Println("   ⏭️  Attributes already seeded, skipping...")
 		return nil
 	}
 
 	attributes := GetAttributes()
+	createdCount := 0
 	for _, attr := range attributes {
 		if err := s.db.Create(&attr).Error; err != nil {
+			// Check if it's a duplicate key error
+			if strings.Contains(err.Error(), "duplicate key value") {
+				log.Printf("   ⚠️  Attribute %s already exists, skipping...", attr.Name)
+				continue
+			}
 			return fmt.Errorf("failed to create attribute %s: %w", attr.Name, err)
 		}
+		createdCount++
 	}
 
-	log.Printf("   ✅ Seeded %d attributes", len(attributes))
+	log.Printf("   ✅ Seeded %d attributes", createdCount)
 	return nil
 }
 
@@ -330,6 +341,26 @@ func (s *Seeder) seedEquipment() error {
 	}
 
 	log.Printf("   ✅ Seeded %d equipment items", len(equipment))
+	return nil
+}
+
+// seedEquipmentItems seeds detailed equipment items
+func (s *Seeder) seedEquipmentItems() error {
+	var count int64
+	s.db.Model(&EquipmentItem{}).Count(&count)
+	if count > 0 {
+		log.Println("   ⏭️  Equipment items already seeded, skipping...")
+		return nil
+	}
+
+	items := GetEquipmentItems()
+	for _, item := range items {
+		if err := s.db.Create(&item).Error; err != nil {
+			return fmt.Errorf("failed to create equipment item %s: %w", item.Name, err)
+		}
+	}
+
+	log.Printf("   ✅ Seeded %d equipment items", len(items))
 	return nil
 }
 
