@@ -120,3 +120,43 @@ type CharacterDerivedStats struct {
 func (CharacterDerivedStats) TableName() string {
 	return "character_derived_stats"
 }
+
+type PersonalEquipment struct {
+	ID          uuid.UUID `gorm:"type:uuid;primary_key;default:gen_random_uuid()"`
+	Name        string    `gorm:"not null"`
+	Category    string    `gorm:"not null"` // Carry, Light, Tools, Vision, Communication, Electronics, Clothing, Living, Restraint, Magical aid
+	Subcategory string    `gorm:"not null"` // Medieval, Industrial, Cyber
+	Era         string    `gorm:"not null"` // Medieval, Industrial, Cyber
+	Cost        int       `gorm:"not null"`
+	Rarity      int       `gorm:"not null"` // 0=Civilian, 1-3=Restricted, 4-5=Military
+	Size        int       `gorm:"not null"`
+	Weight      float64   `gorm:"not null"`
+	Type        string    `gorm:"default:''"` // Specific type within category
+	Special     string    `gorm:"default:''"` // Special properties and effects
+	Capacity    int       `gorm:"default:0"`  // For items with capacity (programs, IC, etc.)
+	Rating      int       `gorm:"default:0"`  // For items with ratings
+	Description string    `gorm:"default:''"`
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
+}
+
+func (PersonalEquipment) TableName() string {
+	return "personal_equipment"
+}
+
+type CharacterPersonalEquipment struct {
+	ID                  uuid.UUID  `gorm:"type:uuid;primaryKey;default:gen_random_uuid()"`
+	CharacterID         uuid.UUID  `gorm:"type:uuid;not null" json:"character_id"`
+	PersonalEquipmentID uuid.UUID  `gorm:"type:uuid;not null" json:"personal_equipment_id"`
+	Quantity            int        `gorm:"default:1" json:"quantity"`
+	CreatedAt           time.Time  `gorm:"not null;default:now()" json:"created_at"`
+	UpdatedAt           *time.Time `gorm:"column:updated_at" json:"updated_at"`
+
+	// Relationships
+	Character         models.Character  `gorm:"foreignKey:CharacterID" json:"character,omitempty"`
+	PersonalEquipment PersonalEquipment `gorm:"foreignKey:PersonalEquipmentID" json:"personal_equipment,omitempty"`
+}
+
+func (CharacterPersonalEquipment) TableName() string {
+	return "character_personal_equipment"
+}

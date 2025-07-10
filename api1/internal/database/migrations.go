@@ -4,6 +4,7 @@ import (
 	"log"
 
 	"github.com/mremperor-atwork/rpg1/api1/internal/database/seeds"
+	"github.com/mremperor-atwork/rpg1/api1/internal/features/game"
 	"gorm.io/gorm"
 )
 
@@ -13,8 +14,10 @@ func RunMigrations(db *gorm.DB) error {
 
 	// Auto-migrate only new models (existing tables are managed manually)
 	err := db.AutoMigrate(
-		// Only migrate equipment_items - other tables already exist
+		// Only migrate equipment_items and personal_equipment - other tables already exist
 		&seeds.EquipmentItem{},
+		&game.PersonalEquipment{},
+		&game.CharacterPersonalEquipment{},
 	)
 
 	if err != nil {

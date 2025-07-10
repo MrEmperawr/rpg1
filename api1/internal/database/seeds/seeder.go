@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/google/uuid"
+	"github.com/mremperor-atwork/rpg1/api1/internal/features/game"
 	"github.com/mremperor-atwork/rpg1/api1/internal/features/srd"
 	"github.com/mremperor-atwork/rpg1/api1/internal/models"
 	"gorm.io/gorm"
@@ -39,6 +40,7 @@ func (s *Seeder) SeedAll() error {
 		{"Qualities", s.seedQualities, false},
 		{"Equipment", s.seedEquipment, false},
 		{"Equipment Items", s.seedEquipmentItems, false},
+		{"Personal Equipment", s.seedPersonalEquipment, false},
 		{"SRD Entries", s.SeedSRDEntries, false},
 		{"Spells", s.seedSpells, false},
 		{"Conditions", s.seedConditions, false},
@@ -364,6 +366,26 @@ func (s *Seeder) seedEquipmentItems() error {
 	return nil
 }
 
+// seedPersonalEquipment seeds personal equipment items
+func (s *Seeder) seedPersonalEquipment() error {
+	var count int64
+	s.db.Model(&game.PersonalEquipment{}).Count(&count)
+	if count > 0 {
+		log.Println("   ⏭️  Personal equipment items already seeded, skipping...")
+		return nil
+	}
+
+	items := GetPersonalEquipment()
+	for _, item := range items {
+		if err := s.db.Create(&item).Error; err != nil {
+			return fmt.Errorf("failed to create personal equipment item %s: %w", item.Name, err)
+		}
+	}
+
+	log.Printf("   ✅ Seeded %d personal equipment items", len(items))
+	return nil
+}
+
 // seedLanguages seeds the supported languages
 func (s *Seeder) seedLanguages() error {
 	var count int64
@@ -559,6 +581,9 @@ func (s *Seeder) GetSeedingStatus() map[string]int64 {
 
 	s.db.Model(&srd.Equipment{}).Count(&count)
 	status["equipment"] = count
+
+	s.db.Model(&game.PersonalEquipment{}).Count(&count)
+	status["personal_equipment"] = count
 
 	s.db.Model(&srd.SRDEntry{}).Count(&count)
 	status["srd_entries"] = count
