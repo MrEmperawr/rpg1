@@ -17,7 +17,7 @@ type User struct {
 }
 
 func (User) TableName() string {
-	return "user"
+	return "users"
 }
 
 type Campaign struct {
@@ -31,6 +31,10 @@ type Campaign struct {
 
 	// Relationships
 	GMUser User `gorm:"foreignKey:GMUserID" json:"gm_user,omitempty"`
+}
+
+func (Campaign) TableName() string {
+	return "campaigns"
 }
 
 type Character struct {
@@ -52,7 +56,7 @@ type Character struct {
 }
 
 func (Character) TableName() string {
-	return "character"
+	return "characters"
 }
 
 type Species struct {

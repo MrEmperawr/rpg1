@@ -27,6 +27,10 @@ type CharacterAttribute struct {
 	Attribute srd.Attribute    `gorm:"foreignKey:AttributeID" json:"attribute,omitempty"`
 }
 
+func (CharacterAttribute) TableName() string {
+	return "character_attributes"
+}
+
 type CharacterSkill struct {
 	ID          uuid.UUID  `gorm:"type:uuid;primaryKey;default:gen_random_uuid()"`
 	CharacterID uuid.UUID  `gorm:"type:uuid;not null" json:"character_id"`
@@ -40,6 +44,10 @@ type CharacterSkill struct {
 	Skill     srd.Skill        `gorm:"foreignKey:SkillID" json:"skill,omitempty"`
 }
 
+func (CharacterSkill) TableName() string {
+	return "character_skills"
+}
+
 type CharacterSkillSpecialty struct {
 	ID               uuid.UUID `gorm:"type:uuid;primaryKey;default:gen_random_uuid()"`
 	CharacterID      uuid.UUID `gorm:"type:uuid;not null" json:"character_id"`
@@ -49,6 +57,10 @@ type CharacterSkillSpecialty struct {
 	// Relationships
 	Character      models.Character   `gorm:"foreignKey:CharacterID" json:"character,omitempty"`
 	SkillSpecialty srd.SkillSpecialty `gorm:"foreignKey:SkillSpecialtyID" json:"skill_specialty,omitempty"`
+}
+
+func (CharacterSkillSpecialty) TableName() string {
+	return "character_skill_specialties"
 }
 
 type CharacterQuality struct {
@@ -64,6 +76,10 @@ type CharacterQuality struct {
 	Quality   srd.Quality      `gorm:"foreignKey:QualityID" json:"quality,omitempty"`
 }
 
+func (CharacterQuality) TableName() string {
+	return "character_qualities"
+}
+
 type CharacterEquipment struct {
 	ID          uuid.UUID  `gorm:"type:uuid;primaryKey;default:gen_random_uuid()"`
 	CharacterID uuid.UUID  `gorm:"type:uuid;not null" json:"character_id"`
@@ -75,6 +91,10 @@ type CharacterEquipment struct {
 	// Relationships
 	Character models.Character `gorm:"foreignKey:CharacterID" json:"character,omitempty"`
 	Equipment srd.Equipment    `gorm:"foreignKey:EquipmentID" json:"equipment,omitempty"`
+}
+
+func (CharacterEquipment) TableName() string {
+	return "character_equipment"
 }
 
 type CharacterDerivedStats struct {
@@ -95,4 +115,8 @@ type CharacterDerivedStats struct {
 
 	// Relationships
 	Character models.Character `gorm:"foreignKey:CharacterID" json:"character,omitempty"`
+}
+
+func (CharacterDerivedStats) TableName() string {
+	return "character_derived_stats"
 }
