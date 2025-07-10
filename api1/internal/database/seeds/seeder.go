@@ -400,28 +400,37 @@ func (s *Seeder) SeedSRDEntries() error {
 		createdCount++
 	}
 
-	// Seed English SRD content for the first 10 entries
+	// Seed English SRD content for magic entries
 	var enLang srd.Language
 	if err := s.db.Where("code = ?", "en").First(&enLang).Error; err != nil {
 		return fmt.Errorf("failed to find English language: %w", err)
 	}
-	contentEN := GetSRDContentEN()
-	for _, c := range contentEN {
-		entryID, ok := titleToID[c.Title]
-		if !ok {
-			log.Printf("   ⚠️  Warning: No SRD entry found for content title '%s'", c.Title)
+
+	// Get magic SRD content
+	magicContent := GetMagicSRDContent()
+	contentCount := 0
+
+	for _, c := range magicContent {
+		// Find the corresponding SRD entry by title
+		var entry srd.SRDEntry
+		if err := s.db.Where("title = ?", c.Title).First(&entry).Error; err != nil {
+			log.Printf("   ⚠️  Warning: No SRD entry found for title '%s'", c.Title)
 			continue
 		}
+
 		content := srd.SRDContent{
-			EntryID:    entryID,
+			EntryID:    entry.ID,
 			LanguageID: enLang.ID,
 			Content:    c.Content,
 			IsActive:   true,
 		}
 		if err := s.db.Create(&content).Error; err != nil {
-			return fmt.Errorf("failed to create SRD content for '%s': %w", c.Title, err)
+			return fmt.Errorf("failed to create SRD content for entry '%s': %w", entry.Title, err)
 		}
+		contentCount++
 	}
+
+	log.Printf("   ✅ Seeded %d SRD content entries", contentCount)
 
 	log.Printf("   ✅ Seeded %d SRD entries and English content", createdCount)
 	return nil
