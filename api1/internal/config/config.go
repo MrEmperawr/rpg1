@@ -10,7 +10,7 @@ type Config struct {
 	SupabaseURL   string
 	SupabaseKey   string
 	ServerAddress string
-	PostgresDSN   string
+	DatabaseURL   string
 }
 
 func Load() (*Config, error) {
@@ -20,7 +20,7 @@ func Load() (*Config, error) {
 		SupabaseURL:   os.Getenv("SUPABASE_URL"),
 		SupabaseKey:   os.Getenv("SUPABASE_KEY"),
 		ServerAddress: getEnv("SERVER_ADDRESS", ":8080"),
-		PostgresDSN:   os.Getenv("POSTGRES_DSN"),
+		DatabaseURL:   os.Getenv("DATABASE_URL"),
 	}
 	return cfg, nil
 }

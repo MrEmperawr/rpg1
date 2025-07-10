@@ -7,7 +7,6 @@ import (
 	"github.com/mremperor-atwork/rpg1/api1/internal/config"
 	"github.com/mremperor-atwork/rpg1/api1/internal/database"
 	"github.com/mremperor-atwork/rpg1/api1/internal/handlers"
-	"github.com/mremperor-atwork/rpg1/api1/internal/models"
 )
 
 func main() {
@@ -17,17 +16,10 @@ func main() {
 	}
 
 	// Initialize database with GORM
-	if err := database.Connect(cfg.PostgresDSN); err != nil {
+	if err := database.Connect(cfg.DatabaseURL); err != nil {
 		log.Fatalf("failed to connect to database: %v", err)
 	}
 	defer database.Close()
-
-	// Auto-migrate the database schema
-	db := database.GetDB()
-	if err := db.AutoMigrate(&models.User{}, &models.Character{}, &models.Item{}, &models.CharacterItem{}); err != nil {
-		log.Fatalf("failed to migrate database: %v", err)
-	}
-	log.Println("Database schema migrated successfully!")
 
 	r := gin.Default()
 
