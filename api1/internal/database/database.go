@@ -44,10 +44,6 @@ func Connect(dsn string) error {
 		return fmt.Errorf("failed to run migrations: %w", err)
 	}
 
-	if err := SeedDatabase(DB); err != nil {
-		return fmt.Errorf("failed to seed database: %w", err)
-	}
-
 	return nil
 }
 

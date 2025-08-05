@@ -29,6 +29,8 @@ func main() {
 
 	// Setup API routes
 	routes.SetupSRDRoutes(r)
+	routes.SetupCharacterRoutes(r)
+	routes.SetupUserRoutes(r)
 
 	log.Printf("Starting server on %s", cfg.ServerAddress)
 	r.Run(cfg.ServerAddress)
