@@ -7,6 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 
+	"github.com/mremperor-atwork/rpg1/api1/internal/middleware"
 	"github.com/mremperor-atwork/rpg1/api1/internal/models"
 	"github.com/mremperor-atwork/rpg1/api1/internal/repository"
 )
@@ -62,9 +63,17 @@ func (h *UserHandlers) GetUser(c *gin.Context) {
 }
 
 func (h *UserHandlers) GetCurrentUser(c *gin.Context) {
-	// TODO: Get user ID from JWT token or session
-	// For now, use a placeholder user ID
-	userID := uuid.MustParse("00000000-0000-0000-0000-000000000001")
+	authUser, exists := middleware.GetUserFromContext(c)
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not authenticated"})
+		return
+	}
+
+	userID, err := uuid.Parse(authUser.ID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
+		return
+	}
 
 	user, err := h.userRepo.GetUserByID(userID)
 	if err != nil {
@@ -228,7 +237,6 @@ func (h *UserHandlers) UpdateUserPreferences(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "User preferences updated successfully"})
 }
 
-// User Authentication (placeholder for future implementation)
 func (h *UserHandlers) Login(c *gin.Context) {
 	var loginData struct {
 		Email    string `json:"email" binding:"required,email"`
@@ -240,26 +248,9 @@ func (h *UserHandlers) Login(c *gin.Context) {
 		return
 	}
 
-	user, err := h.userRepo.AuthenticateUser(loginData.Email, loginData.Password)
-	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid credentials"})
-		return
-	}
-
-	// TODO: Generate JWT token
-	sessionToken, err := h.userRepo.CreateUserSession(user.ID, map[string]interface{}{
-		"email": user.Email,
-		"ip":    c.ClientIP(),
-	})
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create session"})
-		return
-	}
-
 	c.JSON(http.StatusOK, gin.H{
-		"message": "Login successful",
-		"user":    user,
-		"token":   sessionToken,
+		"message": "Login successful (use Supabase Auth for actual authentication)",
+		"email":   loginData.Email,
 	})
 }
 
@@ -270,12 +261,7 @@ func (h *UserHandlers) Logout(c *gin.Context) {
 		return
 	}
 
-	if err := h.userRepo.DeleteUserSession(sessionToken); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to logout"})
-		return
-	}
-
-	c.JSON(http.StatusOK, gin.H{"message": "Logout successful"})
+	c.JSON(http.StatusOK, gin.H{"message": "Logout successful (use Supabase Auth for actual logout)"})
 }
 
 func (h *UserHandlers) ChangePassword(c *gin.Context) {
@@ -296,12 +282,10 @@ func (h *UserHandlers) ChangePassword(c *gin.Context) {
 		return
 	}
 
-	if err := h.userRepo.ChangePassword(userID, passwordData.OldPassword, passwordData.NewPassword); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to change password: " + err.Error()})
-		return
-	}
-
-	c.JSON(http.StatusOK, gin.H{"message": "Password changed successfully"})
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Password changed successfully (use Supabase Auth for actual password change)",
+		"user_id": userID,
+	})
 }
 
 func (h *UserHandlers) Register(c *gin.Context) {
@@ -321,11 +305,8 @@ func (h *UserHandlers) Register(c *gin.Context) {
 		return
 	}
 
-	// TODO: Send welcome email
-	// TODO: Generate verification token
-
 	c.JSON(http.StatusCreated, gin.H{
-		"message": "User registered successfully",
+		"message": "User registered successfully (use Supabase Auth for actual registration)",
 		"user":    user,
 	})
 }
