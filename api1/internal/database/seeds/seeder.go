@@ -45,6 +45,7 @@ func (s *Seeder) SeedAll() error {
 		{"Spells", s.seedSpells, false},
 		{"Conditions", s.seedConditions, false},
 		{"Virtues and Vices", s.seedVirtuesVices, false},
+		{"Monsters", s.seedMonsters, false},
 	}
 
 	// Run each seeder and track progress
@@ -555,6 +556,26 @@ func (s *Seeder) seedVirtuesVices() error {
 	return nil
 }
 
+// seedMonsters seeds monster definitions
+func (s *Seeder) seedMonsters() error {
+	var count int64
+	s.db.Model(&models.Monster{}).Count(&count)
+	if count > 0 {
+		log.Println("   ⏭️  Monsters already seeded, skipping...")
+		return nil
+	}
+
+	monsters := GetMonsters()
+	for _, monster := range monsters {
+		if err := s.db.Create(&monster).Error; err != nil {
+			return fmt.Errorf("failed to create monster %s: %w", monster.Name, err)
+		}
+	}
+
+	log.Printf("   ✅ Seeded %d monsters", len(monsters))
+	return nil
+}
+
 // GetSeedingStatus returns the current seeding status
 func (s *Seeder) GetSeedingStatus() map[string]int64 {
 	status := make(map[string]int64)
@@ -596,6 +617,9 @@ func (s *Seeder) GetSeedingStatus() map[string]int64 {
 
 	s.db.Model(&srd.VirtueVice{}).Count(&count)
 	status["virtues_vices"] = count
+
+	s.db.Model(&models.Monster{}).Count(&count)
+	status["monsters"] = count
 
 	return status
 }

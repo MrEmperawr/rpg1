@@ -7,6 +7,7 @@ import (
 	"github.com/mremperor-atwork/rpg1/api1/internal/features/auth"
 	"github.com/mremperor-atwork/rpg1/api1/internal/features/game"
 	"github.com/mremperor-atwork/rpg1/api1/internal/features/srd"
+	"github.com/mremperor-atwork/rpg1/api1/internal/models"
 	"gorm.io/gorm"
 )
 
@@ -46,6 +47,9 @@ func RunMigrations(db *gorm.DB) error {
 		&game.CharacterDerivedStats{},
 		&game.PersonalEquipment{},
 		&game.CharacterPersonalEquipment{},
+
+		// Shared models
+		&models.Monster{},
 
 		// Equipment items (from seeds)
 		&seeds.EquipmentItem{},

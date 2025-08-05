@@ -46,6 +46,7 @@ type Character struct {
 	Concept              string     `json:"concept"`
 	Vice                 string     `json:"vice"`
 	Virtue               string     `json:"virtue"`
+	Type                 string     `gorm:"default:'PC'" json:"type"` // PC, NPC
 	StartingPointsOption string     `gorm:"column:starting_points_option" json:"starting_points_option"`
 	CreatedAt            time.Time  `gorm:"not null;default:now()" json:"created_at"`
 	UpdatedAt            *time.Time `gorm:"column:updated_at" json:"updated_at"`
@@ -57,6 +58,59 @@ type Character struct {
 
 func (Character) TableName() string {
 	return "characters"
+}
+
+type Monster struct {
+	ID          uuid.UUID `gorm:"type:uuid;primaryKey;default:gen_random_uuid()"`
+	Name        string    `gorm:"not null" json:"name"`
+	Type        string    `gorm:"not null" json:"type"` // Animal, Spirit, Demon, Undead, etc.
+	Description string    `json:"description"`
+
+	// Attributes
+	Brawn   int `json:"brawn"`
+	Agility int `json:"agility"`
+	Logic   int `json:"logic"`
+	Wits    int `json:"wits"`
+	Power   int `json:"power"`
+	Cool    int `json:"cool"`
+	Size    int `json:"size"`
+
+	// Derived Stats
+	Health             int `json:"health"`
+	InitiativeBonus    int `json:"initiative_bonus"`
+	Perception         int `json:"perception"`
+	PhysicalResistance int `json:"physical_resistance"`
+	MentalResistance   int `json:"mental_resistance"`
+	Dodge              int `json:"dodge"`
+	CarryingCapacity   int `json:"carrying_capacity"`
+
+	// Combat Stats
+	ArmorRating   int `json:"armor_rating"`
+	ArmorPiercing int `json:"armor_piercing"`
+	Reach         int `json:"reach"`
+
+	// Movement
+	MoveSpeed int `json:"move_speed"`
+	RunSpeed  int `json:"run_speed"`
+
+	// Skills (JSON array of skill objects)
+	Skills string `gorm:"type:jsonb" json:"skills"` // Array of {name, rating, specialty}
+
+	// Attacks (JSON array of attack objects)
+	Attacks string `gorm:"type:jsonb" json:"attacks"` // Array of {name, damage, damage_type, special}
+
+	// Special Abilities (JSON array of strings)
+	SpecialAbilities string `gorm:"type:jsonb" json:"special_abilities"`
+
+	// Monstrous Features (JSON object for flexible features)
+	MonstrousFeatures string `gorm:"type:jsonb" json:"monstrous_features"`
+
+	CreatedAt time.Time  `gorm:"not null;default:now()" json:"created_at"`
+	UpdatedAt *time.Time `gorm:"column:updated_at" json:"updated_at"`
+}
+
+func (Monster) TableName() string {
+	return "monsters"
 }
 
 type Species struct {
