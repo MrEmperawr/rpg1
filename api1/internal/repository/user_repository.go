@@ -20,7 +20,6 @@ func NewUserRepository() *UserRepository {
 	}
 }
 
-// User CRUD Operations
 func (r *UserRepository) CreateUser(user *models.User) error {
 	return r.db.Create(user).Error
 }
@@ -64,9 +63,7 @@ func (r *UserRepository) SearchUsers(query string) ([]models.User, error) {
 	return users, err
 }
 
-// User Validation
 func (r *UserRepository) ValidateUserCreation(user *models.User) error {
-	// Check if email is unique
 	var count int64
 	err := r.db.Model(&models.User{}).Where("email = ?", user.Email).Count(&count).Error
 	if err != nil {
@@ -76,7 +73,6 @@ func (r *UserRepository) ValidateUserCreation(user *models.User) error {
 		return fmt.Errorf("email already exists")
 	}
 
-	// Check if display name is unique (if provided)
 	if user.DisplayName != "" {
 		err = r.db.Model(&models.User{}).Where("display_name = ?", user.DisplayName).Count(&count).Error
 		if err != nil {
@@ -91,7 +87,6 @@ func (r *UserRepository) ValidateUserCreation(user *models.User) error {
 }
 
 func (r *UserRepository) ValidateUserUpdate(user *models.User) error {
-	// Check if email is unique (excluding current user)
 	var count int64
 	err := r.db.Model(&models.User{}).Where("email = ? AND id != ?", user.Email, user.ID).Count(&count).Error
 	if err != nil {
@@ -101,7 +96,6 @@ func (r *UserRepository) ValidateUserUpdate(user *models.User) error {
 		return fmt.Errorf("email already exists")
 	}
 
-	// Check if display name is unique (if provided, excluding current user)
 	if user.DisplayName != "" {
 		err = r.db.Model(&models.User{}).Where("display_name = ? AND id != ?", user.DisplayName, user.ID).Count(&count).Error
 		if err != nil {
@@ -115,11 +109,9 @@ func (r *UserRepository) ValidateUserUpdate(user *models.User) error {
 	return nil
 }
 
-// User Statistics
 func (r *UserRepository) GetUserStats(userID uuid.UUID) (map[string]interface{}, error) {
 	stats := make(map[string]interface{})
 
-	// Count characters
 	var characterCount int64
 	err := r.db.Model(&models.Character{}).Where("user_id = ?", userID).Count(&characterCount).Error
 	if err != nil {
@@ -127,7 +119,6 @@ func (r *UserRepository) GetUserStats(userID uuid.UUID) (map[string]interface{},
 	}
 	stats["character_count"] = characterCount
 
-	// Count campaigns (as GM)
 	var campaignCount int64
 	err = r.db.Model(&models.Campaign{}).Where("gm_user_id = ?", userID).Count(&campaignCount).Error
 	if err != nil {
@@ -135,7 +126,6 @@ func (r *UserRepository) GetUserStats(userID uuid.UUID) (map[string]interface{},
 	}
 	stats["campaign_count"] = campaignCount
 
-	// Get user creation date
 	var user models.User
 	err = r.db.Select("created_at").First(&user, "id = ?", userID).Error
 	if err != nil {
@@ -146,11 +136,9 @@ func (r *UserRepository) GetUserStats(userID uuid.UUID) (map[string]interface{},
 	return stats, nil
 }
 
-// User Activity
 func (r *UserRepository) GetUserActivity(userID uuid.UUID, limit int) ([]map[string]interface{}, error) {
 	var activities []map[string]interface{}
 
-	// Get recent characters created
 	var characters []models.Character
 	err := r.db.Where("user_id = ?", userID).Order("created_at DESC").Limit(limit).Find(&characters).Error
 	if err != nil {
@@ -167,7 +155,6 @@ func (r *UserRepository) GetUserActivity(userID uuid.UUID, limit int) ([]map[str
 		})
 	}
 
-	// Get recent campaigns (as GM)
 	var campaigns []models.Campaign
 	err = r.db.Where("gm_user_id = ?", userID).Order("created_at DESC").Limit(limit).Find(&campaigns).Error
 	if err != nil {
@@ -184,17 +171,10 @@ func (r *UserRepository) GetUserActivity(userID uuid.UUID, limit int) ([]map[str
 		})
 	}
 
-	// Sort activities by created_at (most recent first)
-	// Note: In a real implementation, you might want to use a dedicated activity table
-	// This is a simplified version that combines character and campaign activities
-
 	return activities, nil
 }
 
-// User Preferences (placeholder for future implementation)
 func (r *UserRepository) GetUserPreferences(userID uuid.UUID) (map[string]interface{}, error) {
-	// This would typically query a user_preferences table
-	// For now, return default preferences
 	return map[string]interface{}{
 		"theme":           "default",
 		"language":        "en",

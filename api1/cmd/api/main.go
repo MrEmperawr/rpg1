@@ -35,6 +35,7 @@ func main() {
 	r.GET("/health", handlers.HealthCheck)
 
 	// Setup API routes
+	routes.SetupAuthRoutes(r)
 	routes.SetupSRDRoutes(r)
 	routes.SetupCharacterRoutes(r)
 	routes.SetupUserRoutes(r)

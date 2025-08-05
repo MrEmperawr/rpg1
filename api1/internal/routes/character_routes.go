@@ -9,11 +9,9 @@ import (
 func SetupCharacterRoutes(r *gin.Engine) {
 	characterHandlers := handlers.NewCharacterHandlers()
 
-	// Character API group - all character operations require authentication
 	characterAPI := r.Group("/api/characters")
 	characterAPI.Use(middleware.AuthMiddleware())
 	{
-		// Character CRUD operations
 		characterAPI.POST("", characterHandlers.CreateCharacter)
 		characterAPI.GET("", characterHandlers.GetUserCharacters)
 		characterAPI.GET("/search", characterHandlers.SearchCharacters)
@@ -23,7 +21,6 @@ func SetupCharacterRoutes(r *gin.Engine) {
 
 		characterAPI.GET("/campaign/:campaignId", characterHandlers.GetCampaignCharacters)
 
-		// Nested routes for character sub-resources
 		characterAPI.GET("/:id/attributes", characterHandlers.GetCharacterAttributes)
 		characterAPI.POST("/:id/attributes", characterHandlers.SetCharacterAttribute)
 		characterAPI.DELETE("/:id/attributes/:attributeId", characterHandlers.DeleteCharacterAttribute)
