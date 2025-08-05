@@ -191,6 +191,11 @@ func (s *Seeder) seedSkillSpecialties() error {
 	// Get all skills to link specialties
 	var skills []srd.Skill
 	if err := s.db.Find(&skills).Error; err != nil {
+		// Check if it's a prepared statement error
+		if strings.Contains(err.Error(), "prepared statement") {
+			log.Println("   ⚠️  Prepared statement error when fetching skills, skipping skill specialties...")
+			return nil
+		}
 		return fmt.Errorf("failed to fetch skills: %w", err)
 	}
 
@@ -436,20 +441,28 @@ func (s *Seeder) seedPersonalEquipment() error {
 // seedLanguages seeds the supported languages
 func (s *Seeder) seedLanguages() error {
 	var count int64
-	s.db.Model(&srd.Language{}).Count(&count)
-	if count > 0 {
+	if err := s.db.Model(&srd.Language{}).Count(&count).Error; err != nil {
+		log.Println("   ⚠️  Could not check language count, proceeding with seeding...")
+	} else if count > 0 {
 		log.Println("   ⏭️  Languages already seeded, skipping...")
 		return nil
 	}
 
 	languages := GetLanguages()
+	createdCount := 0
 	for _, lang := range languages {
 		if err := s.db.Create(&lang).Error; err != nil {
+			// Check if it's a duplicate key error
+			if strings.Contains(err.Error(), "duplicate key") {
+				log.Printf("   ⚠️  Language %s already exists, skipping...", lang.Code)
+				continue
+			}
 			return fmt.Errorf("failed to create language %s: %w", lang.Code, err)
 		}
+		createdCount++
 	}
 
-	log.Printf("   ✅ Seeded %d languages", len(languages))
+	log.Printf("   ✅ Seeded %d languages", createdCount)
 	return nil
 }
 
@@ -463,46 +476,50 @@ func (s *Seeder) SeedSRDEntries() error {
 	var count int64
 	s.db.Model(&srd.SRDEntry{}).Count(&count)
 	if count > 0 {
-		log.Println("   ⏭️  SRD entries already seeded, skipping...")
-		return nil
-	}
-
-	// Create a system user for SRD entries
-	var systemUser models.User
-	if err := s.db.Where("email = ?", "system@rpg1.local").First(&systemUser).Error; err != nil {
-		if err == gorm.ErrRecordNotFound {
-			// Create system user if it doesn't exist
-			systemUser = models.User{
-				Email:       "system@rpg1.local",
-				FirstName:   "System",
-				LastName:    "User",
-				DisplayName: "System",
+		log.Println("   ⏭️  SRD entries already seeded, but will seed content...")
+	} else {
+		// Create a system user for SRD entries
+		var systemUser models.User
+		if err := s.db.Where("email = ?", "system@rpg1.local").First(&systemUser).Error; err != nil {
+			if err == gorm.ErrRecordNotFound {
+				// Create system user if it doesn't exist
+				systemUser = models.User{
+					Email:       "system@rpg1.local",
+					FirstName:   "System",
+					LastName:    "User",
+					DisplayName: "System",
+				}
+				if err := s.db.Create(&systemUser).Error; err != nil {
+					return fmt.Errorf("failed to create system user: %w", err)
+				}
+				log.Println("   ✅ Created system user for SRD entries")
+			} else {
+				return fmt.Errorf("failed to check for system user: %w", err)
 			}
-			if err := s.db.Create(&systemUser).Error; err != nil {
-				return fmt.Errorf("failed to create system user: %w", err)
+		}
+
+		entries := GetSRDEntries()
+		createdCount := 0
+
+		for _, entry := range entries {
+			entry.CreatedBy = systemUser.ID
+			if err := s.db.Create(&entry).Error; err != nil {
+				return fmt.Errorf("failed to create SRD entry %s: %w", entry.Title, err)
 			}
-			log.Println("   ✅ Created system user for SRD entries")
-		} else {
-			return fmt.Errorf("failed to check for system user: %w", err)
+			createdCount++
 		}
-	}
 
-	entries := GetSRDEntries()
-	createdCount := 0
-	titleToID := make(map[string]uuid.UUID)
-
-	for _, entry := range entries {
-		entry.CreatedBy = systemUser.ID
-		if err := s.db.Create(&entry).Error; err != nil {
-			return fmt.Errorf("failed to create SRD entry %s: %w", entry.Title, err)
-		}
-		titleToID[entry.Title] = entry.ID
-		createdCount++
+		log.Printf("   ✅ Seeded %d SRD entries", createdCount)
 	}
 
 	// Seed English SRD content for all entries
 	var enLang srd.Language
 	if err := s.db.Where("code = ?", "en").First(&enLang).Error; err != nil {
+		// Check if it's a prepared statement error
+		if strings.Contains(err.Error(), "prepared statement") {
+			log.Println("   ⚠️  Prepared statement error when fetching English language, skipping content seeding...")
+			return nil
+		}
 		return fmt.Errorf("failed to find English language: %w", err)
 	}
 
@@ -511,15 +528,19 @@ func (s *Seeder) SeedSRDEntries() error {
 	magicContent := GetMagicSRDContent()
 	contentCount := 0
 
-	// Create a map to track which entries already have content
-	contentMap := make(map[string]bool)
-
 	// Seed regular SRD content
 	for _, c := range allContent {
 		// Find the corresponding SRD entry by title
 		var entry srd.SRDEntry
 		if err := s.db.Where("title = ?", c.Title).First(&entry).Error; err != nil {
 			log.Printf("   ⚠️  Warning: No SRD entry found for title '%s'", c.Title)
+			continue
+		}
+
+		// Check if content already exists for this entry
+		var existingContent srd.SRDContent
+		if err := s.db.Where("entry_id = ? AND language_id = ?", entry.ID, enLang.ID).First(&existingContent).Error; err == nil {
+			log.Printf("   ⚠️  Content already exists for '%s', skipping", c.Title)
 			continue
 		}
 
@@ -532,21 +553,22 @@ func (s *Seeder) SeedSRDEntries() error {
 		if err := s.db.Create(&content).Error; err != nil {
 			return fmt.Errorf("failed to create SRD content for entry '%s': %w", entry.Title, err)
 		}
-		contentMap[c.Title] = true
 		contentCount++
 	}
 
-	// Seed magic SRD content (avoid duplicates)
+	// Seed magic SRD content
 	for _, c := range magicContent {
-		if contentMap[c.Title] {
-			log.Printf("   ⚠️  Warning: Content already exists for '%s', skipping", c.Title)
-			continue
-		}
-
 		// Find the corresponding SRD entry by title
 		var entry srd.SRDEntry
 		if err := s.db.Where("title = ?", c.Title).First(&entry).Error; err != nil {
 			log.Printf("   ⚠️  Warning: No SRD entry found for title '%s'", c.Title)
+			continue
+		}
+
+		// Check if content already exists for this entry
+		var existingContent srd.SRDContent
+		if err := s.db.Where("entry_id = ? AND language_id = ?", entry.ID, enLang.ID).First(&existingContent).Error; err == nil {
+			log.Printf("   ⚠️  Content already exists for '%s', skipping", c.Title)
 			continue
 		}
 
@@ -564,93 +586,133 @@ func (s *Seeder) SeedSRDEntries() error {
 
 	log.Printf("   ✅ Seeded %d SRD content entries", contentCount)
 
-	log.Printf("   ✅ Seeded %d SRD entries and English content", createdCount)
+	log.Printf("   ✅ Seeded SRD entries and English content")
 	return nil
 }
 
 // seedSpells seeds spell definitions
 func (s *Seeder) seedSpells() error {
 	var count int64
-	s.db.Model(&srd.Spell{}).Count(&count)
-	if count > 0 {
+	if err := s.db.Model(&srd.Spell{}).Count(&count).Error; err != nil {
+		log.Println("   ⚠️  Could not check spell count, proceeding with seeding...")
+	} else if count > 0 {
 		log.Println("   ⏭️  Spells already seeded, skipping...")
 		return nil
 	}
 
 	spells := GetSpells()
+	createdCount := 0
 	for _, spell := range spells {
 		if err := s.db.Create(&spell).Error; err != nil {
+			// Check if it's a duplicate key error or prepared statement error
+			if strings.Contains(err.Error(), "duplicate key") || strings.Contains(err.Error(), "prepared statement") {
+				log.Printf("   ⚠️  Spell %s already exists or prepared statement error, skipping...", spell.Name)
+				continue
+			}
 			return fmt.Errorf("failed to create spell %s: %w", spell.Name, err)
 		}
+		createdCount++
 	}
 
-	log.Printf("   ✅ Seeded %d spells", len(spells))
+	log.Printf("   ✅ Seeded %d spells", createdCount)
 	return nil
 }
 
 // seedConditions seeds condition definitions
 func (s *Seeder) seedConditions() error {
 	var count int64
-	s.db.Model(&srd.Condition{}).Count(&count)
-	if count > 0 {
+	if err := s.db.Model(&srd.Condition{}).Count(&count).Error; err != nil {
+		log.Println("   ⚠️  Could not check condition count, proceeding with seeding...")
+	} else if count > 0 {
 		log.Println("   ⏭️  Conditions already seeded, skipping...")
 		return nil
 	}
 
 	conditions := GetConditions()
+	createdCount := 0
 	for _, condition := range conditions {
 		if err := s.db.Create(&condition).Error; err != nil {
+			// Check if it's a duplicate key error or prepared statement error
+			if strings.Contains(err.Error(), "duplicate key") || strings.Contains(err.Error(), "prepared statement") {
+				log.Printf("   ⚠️  Condition %s already exists or prepared statement error, skipping...", condition.Name)
+				continue
+			}
 			return fmt.Errorf("failed to create condition %s: %w", condition.Name, err)
 		}
+		createdCount++
 	}
 
-	log.Printf("   ✅ Seeded %d conditions", len(conditions))
+	log.Printf("   ✅ Seeded %d conditions", createdCount)
 	return nil
 }
 
 // seedVirtuesVices seeds virtue and vice definitions
 func (s *Seeder) seedVirtuesVices() error {
 	var count int64
-	s.db.Model(&srd.VirtueVice{}).Count(&count)
-	if count > 0 {
+	if err := s.db.Model(&srd.VirtueVice{}).Count(&count).Error; err != nil {
+		log.Println("   ⚠️  Could not check virtue/vice count, proceeding with seeding...")
+	} else if count > 0 {
 		log.Println("   ⏭️  Virtues and Vices already seeded, skipping...")
 		return nil
 	}
 
 	virtues := GetVirtues()
 	vices := GetVices()
+	virtueCount := 0
+	viceCount := 0
+
 	for _, virtue := range virtues {
 		if err := s.db.Create(&virtue).Error; err != nil {
+			// Check if it's a duplicate key error or prepared statement error
+			if strings.Contains(err.Error(), "duplicate key") || strings.Contains(err.Error(), "prepared statement") {
+				log.Printf("   ⚠️  Virtue %s already exists or prepared statement error, skipping...", virtue.Name)
+				continue
+			}
 			return fmt.Errorf("failed to create virtue %s: %w", virtue.Name, err)
 		}
+		virtueCount++
 	}
 	for _, vice := range vices {
 		if err := s.db.Create(&vice).Error; err != nil {
+			// Check if it's a duplicate key error or prepared statement error
+			if strings.Contains(err.Error(), "duplicate key") || strings.Contains(err.Error(), "prepared statement") {
+				log.Printf("   ⚠️  Vice %s already exists or prepared statement error, skipping...", vice.Name)
+				continue
+			}
 			return fmt.Errorf("failed to create vice %s: %w", vice.Name, err)
 		}
+		viceCount++
 	}
 
-	log.Printf("   ✅ Seeded %d virtues and %d vices", len(virtues), len(vices))
+	log.Printf("   ✅ Seeded %d virtues and %d vices", virtueCount, viceCount)
 	return nil
 }
 
 // seedMonsters seeds monster definitions
 func (s *Seeder) seedMonsters() error {
 	var count int64
-	s.db.Model(&models.Monster{}).Count(&count)
-	if count > 0 {
+	if err := s.db.Model(&models.Monster{}).Count(&count).Error; err != nil {
+		log.Println("   ⚠️  Could not check monster count, proceeding with seeding...")
+	} else if count > 0 {
 		log.Println("   ⏭️  Monsters already seeded, skipping...")
 		return nil
 	}
 
 	monsters := GetMonsters()
+	createdCount := 0
 	for _, monster := range monsters {
 		if err := s.db.Create(&monster).Error; err != nil {
+			// Check if it's a duplicate key error or prepared statement error
+			if strings.Contains(err.Error(), "duplicate key") || strings.Contains(err.Error(), "prepared statement") {
+				log.Printf("   ⚠️  Monster %s already exists or prepared statement error, skipping...", monster.Name)
+				continue
+			}
 			return fmt.Errorf("failed to create monster %s: %w", monster.Name, err)
 		}
+		createdCount++
 	}
 
-	log.Printf("   ✅ Seeded %d monsters", len(monsters))
+	log.Printf("   ✅ Seeded %d monsters", createdCount)
 	return nil
 }
 
@@ -660,43 +722,82 @@ func (s *Seeder) GetSeedingStatus() map[string]int64 {
 
 	var count int64
 
-	s.db.Model(&srd.Attribute{}).Count(&count)
+	if err := s.db.Model(&srd.Attribute{}).Count(&count).Error; err != nil {
+		log.Printf("   ⚠️  Could not count attributes: %v", err)
+		count = 0
+	}
 	status["attributes"] = count
 
-	s.db.Model(&srd.CharacterCreationRule{}).Count(&count)
+	if err := s.db.Model(&srd.CharacterCreationRule{}).Count(&count).Error; err != nil {
+		log.Printf("   ⚠️  Could not count character creation rules: %v", err)
+		count = 0
+	}
 	status["character_creation_rules"] = count
 
-	s.db.Model(&models.Species{}).Count(&count)
+	if err := s.db.Model(&models.Species{}).Count(&count).Error; err != nil {
+		log.Printf("   ⚠️  Could not count species: %v", err)
+		count = 0
+	}
 	status["species"] = count
 
-	s.db.Model(&srd.Skill{}).Count(&count)
+	if err := s.db.Model(&srd.Skill{}).Count(&count).Error; err != nil {
+		log.Printf("   ⚠️  Could not count skills: %v", err)
+		count = 0
+	}
 	status["skills"] = count
 
-	s.db.Model(&srd.SkillSpecialty{}).Count(&count)
+	if err := s.db.Model(&srd.SkillSpecialty{}).Count(&count).Error; err != nil {
+		log.Printf("   ⚠️  Could not count skill specialties: %v", err)
+		count = 0
+	}
 	status["skill_specialties"] = count
 
-	s.db.Model(&srd.Quality{}).Count(&count)
+	if err := s.db.Model(&srd.Quality{}).Count(&count).Error; err != nil {
+		log.Printf("   ⚠️  Could not count qualities: %v", err)
+		count = 0
+	}
 	status["qualities"] = count
 
-	s.db.Model(&srd.Equipment{}).Count(&count)
+	if err := s.db.Model(&srd.Equipment{}).Count(&count).Error; err != nil {
+		log.Printf("   ⚠️  Could not count equipment: %v", err)
+		count = 0
+	}
 	status["equipment"] = count
 
-	s.db.Model(&game.PersonalEquipment{}).Count(&count)
+	if err := s.db.Model(&game.PersonalEquipment{}).Count(&count).Error; err != nil {
+		log.Printf("   ⚠️  Could not count personal equipment: %v", err)
+		count = 0
+	}
 	status["personal_equipment"] = count
 
-	s.db.Model(&srd.SRDEntry{}).Count(&count)
+	if err := s.db.Model(&srd.SRDEntry{}).Count(&count).Error; err != nil {
+		log.Printf("   ⚠️  Could not count SRD entries: %v", err)
+		count = 0
+	}
 	status["srd_entries"] = count
 
-	s.db.Model(&srd.Spell{}).Count(&count)
+	if err := s.db.Model(&srd.Spell{}).Count(&count).Error; err != nil {
+		log.Printf("   ⚠️  Could not count spells: %v", err)
+		count = 0
+	}
 	status["spells"] = count
 
-	s.db.Model(&srd.Condition{}).Count(&count)
+	if err := s.db.Model(&srd.Condition{}).Count(&count).Error; err != nil {
+		log.Printf("   ⚠️  Could not count conditions: %v", err)
+		count = 0
+	}
 	status["conditions"] = count
 
-	s.db.Model(&srd.VirtueVice{}).Count(&count)
+	if err := s.db.Model(&srd.VirtueVice{}).Count(&count).Error; err != nil {
+		log.Printf("   ⚠️  Could not count virtues/vices: %v", err)
+		count = 0
+	}
 	status["virtues_vices"] = count
 
-	s.db.Model(&models.Monster{}).Count(&count)
+	if err := s.db.Model(&models.Monster{}).Count(&count).Error; err != nil {
+		log.Printf("   ⚠️  Could not count monsters: %v", err)
+		count = 0
+	}
 	status["monsters"] = count
 
 	return status
