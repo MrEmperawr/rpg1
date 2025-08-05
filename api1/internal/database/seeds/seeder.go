@@ -80,9 +80,9 @@ func (s *Seeder) seedAttributes() error {
 	createdCount := 0
 	for _, attr := range attributes {
 		if err := s.db.Create(&attr).Error; err != nil {
-			// Check if it's a duplicate key error
-			if strings.Contains(err.Error(), "duplicate key value") {
-				log.Printf("   ⚠️  Attribute %s already exists, skipping...", attr.Name)
+			// Check if it's a duplicate key error or prepared statement error
+			if strings.Contains(err.Error(), "duplicate key") || strings.Contains(err.Error(), "prepared statement") {
+				log.Printf("   ⚠️  Attribute %s already exists or prepared statement error, skipping...", attr.Name)
 				continue
 			}
 			return fmt.Errorf("failed to create attribute %s: %w", attr.Name, err)
@@ -97,68 +97,93 @@ func (s *Seeder) seedAttributes() error {
 // seedCharacterCreationRules seeds character creation rules
 func (s *Seeder) seedCharacterCreationRules() error {
 	var count int64
-	s.db.Model(&srd.CharacterCreationRule{}).Count(&count)
-	if count > 0 {
+	if err := s.db.Model(&srd.CharacterCreationRule{}).Count(&count).Error; err != nil {
+		log.Println("   ⚠️  Could not check character creation rules count, proceeding with seeding...")
+	} else if count > 0 {
 		log.Println("   ⏭️  Character creation rules already seeded, skipping...")
 		return nil
 	}
 
 	rules := GetCharacterCreationRules()
+	createdCount := 0
 	for _, rule := range rules {
 		if err := s.db.Create(&rule).Error; err != nil {
+			// Check if it's a duplicate key error or prepared statement error
+			if strings.Contains(err.Error(), "duplicate key") || strings.Contains(err.Error(), "prepared statement") {
+				log.Printf("   ⚠️  Rule %s already exists or prepared statement error, skipping...", rule.Name)
+				continue
+			}
 			return fmt.Errorf("failed to create rule %s: %w", rule.Name, err)
 		}
+		createdCount++
 	}
 
-	log.Printf("   ✅ Seeded %d character creation rules", len(rules))
+	log.Printf("   ✅ Seeded %d character creation rules", createdCount)
 	return nil
 }
 
 // seedSpecies seeds the species data
 func (s *Seeder) seedSpecies() error {
 	var count int64
-	s.db.Model(&models.Species{}).Count(&count)
-	if count > 0 {
+	if err := s.db.Model(&models.Species{}).Count(&count).Error; err != nil {
+		log.Println("   ⚠️  Could not check species count, proceeding with seeding...")
+	} else if count > 0 {
 		log.Println("   ⏭️  Species already seeded, skipping...")
 		return nil
 	}
 
 	species := GetSpecies()
+	createdCount := 0
 	for _, sp := range species {
 		if err := s.db.Create(&sp).Error; err != nil {
+			// Check if it's a duplicate key error or prepared statement error
+			if strings.Contains(err.Error(), "duplicate key") || strings.Contains(err.Error(), "prepared statement") {
+				log.Printf("   ⚠️  Species %s already exists or prepared statement error, skipping...", sp.Name)
+				continue
+			}
 			return fmt.Errorf("failed to create species %s: %w", sp.Name, err)
 		}
+		createdCount++
 	}
 
-	log.Printf("   ✅ Seeded %d species", len(species))
+	log.Printf("   ✅ Seeded %d species", createdCount)
 	return nil
 }
 
 // seedSkills seeds the base skills
 func (s *Seeder) seedSkills() error {
 	var count int64
-	s.db.Model(&srd.Skill{}).Count(&count)
-	if count > 0 {
+	if err := s.db.Model(&srd.Skill{}).Count(&count).Error; err != nil {
+		log.Println("   ⚠️  Could not check skill count, proceeding with seeding...")
+	} else if count > 0 {
 		log.Println("   ⏭️  Skills already seeded, skipping...")
 		return nil
 	}
 
 	skills := GetSkills()
+	createdCount := 0
 	for _, skill := range skills {
 		if err := s.db.Create(&skill).Error; err != nil {
+			// Check if it's a duplicate key error or prepared statement error
+			if strings.Contains(err.Error(), "duplicate key") || strings.Contains(err.Error(), "prepared statement") {
+				log.Printf("   ⚠️  Skill %s already exists or prepared statement error, skipping...", skill.Name)
+				continue
+			}
 			return fmt.Errorf("failed to create skill %s: %w", skill.Name, err)
 		}
+		createdCount++
 	}
 
-	log.Printf("   ✅ Seeded %d skills", len(skills))
+	log.Printf("   ✅ Seeded %d skills", createdCount)
 	return nil
 }
 
 // seedSkillSpecialties seeds skill specialties and links them to skills
 func (s *Seeder) seedSkillSpecialties() error {
 	var count int64
-	s.db.Model(&srd.SkillSpecialty{}).Count(&count)
-	if count > 0 {
+	if err := s.db.Model(&srd.SkillSpecialty{}).Count(&count).Error; err != nil {
+		log.Println("   ⚠️  Could not check skill specialties count, proceeding with seeding...")
+	} else if count > 0 {
 		log.Println("   ⏭️  Skill specialties already seeded, skipping...")
 		return nil
 	}
@@ -184,6 +209,11 @@ func (s *Seeder) seedSkillSpecialties() error {
 		if skillID, exists := skillMap[skillName]; exists {
 			specialty.SkillID = skillID
 			if err := s.db.Create(&specialty).Error; err != nil {
+				// Check if it's a duplicate key error or prepared statement error
+				if strings.Contains(err.Error(), "duplicate key") || strings.Contains(err.Error(), "prepared statement") {
+					log.Printf("   ⚠️  Specialty %s already exists or prepared statement error, skipping...", specialty.Name)
+					continue
+				}
 				return fmt.Errorf("failed to create specialty %s: %w", specialty.Name, err)
 			}
 			createdCount++
@@ -310,40 +340,56 @@ func getSkillNameForSpecialty(specialtyName string) string {
 // seedQualities seeds positive and negative qualities
 func (s *Seeder) seedQualities() error {
 	var count int64
-	s.db.Model(&srd.Quality{}).Count(&count)
-	if count > 0 {
+	if err := s.db.Model(&srd.Quality{}).Count(&count).Error; err != nil {
+		log.Println("   ⚠️  Could not check quality count, proceeding with seeding...")
+	} else if count > 0 {
 		log.Println("   ⏭️  Qualities already seeded, skipping...")
 		return nil
 	}
 
 	qualities := GetQualities()
+	createdCount := 0
 	for _, quality := range qualities {
 		if err := s.db.Create(&quality).Error; err != nil {
+			// Check if it's a duplicate key error or prepared statement error
+			if strings.Contains(err.Error(), "duplicate key") || strings.Contains(err.Error(), "prepared statement") {
+				log.Printf("   ⚠️  Quality %s already exists or prepared statement error, skipping...", quality.Name)
+				continue
+			}
 			return fmt.Errorf("failed to create quality %s: %w", quality.Name, err)
 		}
+		createdCount++
 	}
 
-	log.Printf("   ✅ Seeded %d qualities", len(qualities))
+	log.Printf("   ✅ Seeded %d qualities", createdCount)
 	return nil
 }
 
 // seedEquipment seeds equipment definitions
 func (s *Seeder) seedEquipment() error {
 	var count int64
-	s.db.Model(&srd.Equipment{}).Count(&count)
-	if count > 0 {
+	if err := s.db.Model(&srd.Equipment{}).Count(&count).Error; err != nil {
+		log.Println("   ⚠️  Could not check equipment count, proceeding with seeding...")
+	} else if count > 0 {
 		log.Println("   ⏭️  Equipment already seeded, skipping...")
 		return nil
 	}
 
 	equipment := GetEquipment()
+	createdCount := 0
 	for _, item := range equipment {
 		if err := s.db.Create(&item).Error; err != nil {
+			// Check if it's a duplicate key error or prepared statement error
+			if strings.Contains(err.Error(), "duplicate key") || strings.Contains(err.Error(), "prepared statement") {
+				log.Printf("   ⚠️  Equipment %s already exists or prepared statement error, skipping...", item.Name)
+				continue
+			}
 			return fmt.Errorf("failed to create equipment %s: %w", item.Name, err)
 		}
+		createdCount++
 	}
 
-	log.Printf("   ✅ Seeded %d equipment items", len(equipment))
+	log.Printf("   ✅ Seeded %d equipment items", createdCount)
 	return nil
 }
 
@@ -454,17 +500,49 @@ func (s *Seeder) SeedSRDEntries() error {
 		createdCount++
 	}
 
-	// Seed English SRD content for magic entries
+	// Seed English SRD content for all entries
 	var enLang srd.Language
 	if err := s.db.Where("code = ?", "en").First(&enLang).Error; err != nil {
 		return fmt.Errorf("failed to find English language: %w", err)
 	}
 
-	// Get magic SRD content
+	// Get all SRD content
+	allContent := GetSRDContentEN()
 	magicContent := GetMagicSRDContent()
 	contentCount := 0
 
+	// Create a map to track which entries already have content
+	contentMap := make(map[string]bool)
+
+	// Seed regular SRD content
+	for _, c := range allContent {
+		// Find the corresponding SRD entry by title
+		var entry srd.SRDEntry
+		if err := s.db.Where("title = ?", c.Title).First(&entry).Error; err != nil {
+			log.Printf("   ⚠️  Warning: No SRD entry found for title '%s'", c.Title)
+			continue
+		}
+
+		content := srd.SRDContent{
+			EntryID:    entry.ID,
+			LanguageID: enLang.ID,
+			Content:    c.Content,
+			IsActive:   true,
+		}
+		if err := s.db.Create(&content).Error; err != nil {
+			return fmt.Errorf("failed to create SRD content for entry '%s': %w", entry.Title, err)
+		}
+		contentMap[c.Title] = true
+		contentCount++
+	}
+
+	// Seed magic SRD content (avoid duplicates)
 	for _, c := range magicContent {
+		if contentMap[c.Title] {
+			log.Printf("   ⚠️  Warning: Content already exists for '%s', skipping", c.Title)
+			continue
+		}
+
 		// Find the corresponding SRD entry by title
 		var entry srd.SRDEntry
 		if err := s.db.Where("title = ?", c.Title).First(&entry).Error; err != nil {

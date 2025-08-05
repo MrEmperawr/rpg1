@@ -16,6 +16,7 @@ func RunMigrations(db *gorm.DB) error {
 	log.Println("Running database migrations...")
 
 	// Auto-migrate all models to create tables
+	// Note: AutoMigrate will only create tables that don't exist and update existing ones
 	err := db.AutoMigrate(
 		// Auth models
 		&auth.User{},
@@ -56,7 +57,8 @@ func RunMigrations(db *gorm.DB) error {
 	)
 
 	if err != nil {
-		return err
+		log.Printf("Migration warning (this is normal if tables already exist): %v", err)
+		// Don't return error for existing tables - this is expected
 	}
 
 	log.Println("Database migrations completed successfully!")

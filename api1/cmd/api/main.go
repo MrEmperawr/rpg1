@@ -7,6 +7,7 @@ import (
 	"github.com/mremperor-atwork/rpg1/api1/internal/config"
 	"github.com/mremperor-atwork/rpg1/api1/internal/database"
 	"github.com/mremperor-atwork/rpg1/api1/internal/handlers"
+	"github.com/mremperor-atwork/rpg1/api1/internal/routes"
 )
 
 func main() {
@@ -23,7 +24,11 @@ func main() {
 
 	r := gin.Default()
 
+	// Health check
 	r.GET("/health", handlers.HealthCheck)
+
+	// Setup API routes
+	routes.SetupSRDRoutes(r)
 
 	log.Printf("Starting server on %s", cfg.ServerAddress)
 	r.Run(cfg.ServerAddress)

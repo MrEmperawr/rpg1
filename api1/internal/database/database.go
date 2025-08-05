@@ -15,13 +15,15 @@ func Connect(dsn string) error {
 	var err error
 
 	gormConfig := &gorm.Config{
-		Logger: logger.Default.LogMode(logger.Info), // Set to logger.Silent in production
+		Logger:                                   logger.Default.LogMode(logger.Info), // Set to logger.Silent in production
+		DisableForeignKeyConstraintWhenMigrating: true,
+		PrepareStmt:                              false, // Disable prepared statements to avoid Supabase issues
 	}
 
-	// Configure postgres driver to use lib/pq instead of pgx
+	// Configure postgres driver to use pgx
 	DB, err = gorm.Open(postgres.New(postgres.Config{
 		DSN:        dsn,
-		DriverName: "postgres", // This forces use of lib/pq
+		DriverName: "pgx", // Use pgx driver
 	}), gormConfig)
 	if err != nil {
 		return fmt.Errorf("failed to connect to database: %w", err)
