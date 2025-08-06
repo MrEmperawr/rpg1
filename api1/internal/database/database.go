@@ -20,7 +20,6 @@ func Connect(dsn string) error {
 		PrepareStmt:                              false, // Disable prepared statements to avoid Supabase issues
 	}
 
-	// Configure postgres driver to use pgx
 	DB, err = gorm.Open(postgres.New(postgres.Config{
 		DSN:        dsn,
 		DriverName: "pgx", // Use pgx driver

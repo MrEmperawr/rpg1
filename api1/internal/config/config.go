@@ -18,7 +18,7 @@ func Load() (*Config, error) {
 
 	cfg := &Config{
 		SupabaseURL:   os.Getenv("SUPABASE_URL"),
-		SupabaseKey:   os.Getenv("SUPABASE_KEY"),
+		SupabaseKey:   os.Getenv("SUPABASE_ANON_KEY"),
 		ServerAddress: getEnv("SERVER_ADDRESS", ":8080"),
 		DatabaseURL:   os.Getenv("DATABASE_URL"),
 	}

@@ -9,6 +9,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/mremperor-atwork/rpg1/api1/internal/supabase"
 )
 
 type AuthUser struct {
@@ -56,6 +57,75 @@ func (c *SupabaseClaims) GetAudience() (jwt.ClaimStrings, error) {
 	return jwt.ClaimStrings{c.Aud}, nil
 }
 
+// AutoRefreshAuthMiddleware automatically refreshes tokens when they're close to expiring
+func AutoRefreshAuthMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		authHeader := c.GetHeader("Authorization")
+		if authHeader == "" {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "authorization header required"})
+			c.Abort()
+			return
+		}
+
+		if !strings.HasPrefix(authHeader, "Bearer ") {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "bearer token required"})
+			c.Abort()
+			return
+		}
+
+		tokenString := strings.TrimPrefix(authHeader, "Bearer ")
+
+		// Parse token to check expiration
+		claims, err := parseTokenClaims(tokenString)
+		if err != nil {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid token: " + err.Error()})
+			c.Abort()
+			return
+		}
+
+		// Check if token is expired
+		if claims.Exp < time.Now().Unix() {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "token expired"})
+			c.Abort()
+			return
+		}
+
+		// Check if token will expire soon (within 5 minutes)
+		expiresIn := claims.Exp - time.Now().Unix()
+		if expiresIn < 300 { // 5 minutes = 300 seconds
+			// Try to refresh the token
+			refreshToken := c.GetHeader("X-Refresh-Token")
+			if refreshToken != "" {
+				newTokens, err := refreshAccessToken(refreshToken)
+				if err == nil {
+					// Set new tokens in response headers
+					c.Header("X-New-Access-Token", newTokens.AccessToken)
+					c.Header("X-New-Refresh-Token", newTokens.RefreshToken)
+					c.Header("X-Token-Expires-In", fmt.Sprintf("%d", newTokens.ExpiresIn))
+
+					// Update the token for this request
+					tokenString = newTokens.AccessToken
+
+					// Re-parse claims with new token
+					claims, _ = parseTokenClaims(tokenString)
+				}
+			}
+		}
+
+		// Validate the token (either original or refreshed)
+		user, err := validateSupabaseToken(tokenString)
+		if err != nil {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid token: " + err.Error()})
+			c.Abort()
+			return
+		}
+
+		c.Set("user", user)
+		c.Next()
+	}
+}
+
+// AuthMiddleware is the standard auth middleware without auto-refresh
 func AuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		authHeader := c.GetHeader("Authorization")
@@ -85,9 +155,34 @@ func AuthMiddleware() gin.HandlerFunc {
 	}
 }
 
-func validateSupabaseToken(tokenString string) (*AuthUser, error) {
-	// For development, we'll use unverified parsing to extract claims
-	// In production, you should verify the JWT signature with Supabase's public key
+// TokenResponse represents the response from a token refresh
+type TokenResponse struct {
+	AccessToken  string `json:"access_token"`
+	RefreshToken string `json:"refresh_token"`
+	ExpiresIn    int64  `json:"expires_in"`
+}
+
+// refreshAccessToken attempts to refresh an access token using the refresh token
+func refreshAccessToken(refreshToken string) (*TokenResponse, error) {
+	supabaseClient := supabase.GetClient()
+	if supabaseClient == nil {
+		return nil, fmt.Errorf("supabase client not initialized")
+	}
+
+	authResponse, err := supabaseClient.Auth.RefreshToken(refreshToken)
+	if err != nil {
+		return nil, fmt.Errorf("failed to refresh token: %w", err)
+	}
+
+	return &TokenResponse{
+		AccessToken:  authResponse.AccessToken,
+		RefreshToken: authResponse.RefreshToken,
+		ExpiresIn:    int64(authResponse.ExpiresIn),
+	}, nil
+}
+
+// parseTokenClaims parses JWT token and returns claims without validation
+func parseTokenClaims(tokenString string) (*SupabaseClaims, error) {
 	token, _, err := new(jwt.Parser).ParseUnverified(tokenString, &SupabaseClaims{})
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse token: %w", err)
@@ -96,6 +191,15 @@ func validateSupabaseToken(tokenString string) (*AuthUser, error) {
 	claims, ok := token.Claims.(*SupabaseClaims)
 	if !ok {
 		return nil, fmt.Errorf("invalid token claims")
+	}
+
+	return claims, nil
+}
+
+func validateSupabaseToken(tokenString string) (*AuthUser, error) {
+	claims, err := parseTokenClaims(tokenString)
+	if err != nil {
+		return nil, err
 	}
 
 	// Check if token is expired
@@ -114,8 +218,11 @@ func validateSupabaseToken(tokenString string) (*AuthUser, error) {
 
 	// Validate issuer (should be your Supabase project)
 	supabaseURL := os.Getenv("SUPABASE_URL")
-	if supabaseURL != "" && claims.Iss != supabaseURL {
-		return nil, fmt.Errorf("invalid token issuer")
+	if supabaseURL != "" {
+		expectedIssuer := supabaseURL + "/auth/v1"
+		if claims.Iss != expectedIssuer {
+			return nil, fmt.Errorf("invalid token issuer")
+		}
 	}
 
 	return &AuthUser{
@@ -173,6 +280,11 @@ func GetUserFromContext(c *gin.Context) (*AuthUser, bool) {
 
 func RequireAuth() gin.HandlerFunc {
 	return AuthMiddleware()
+}
+
+// RequireAuthWithAutoRefresh uses the auto-refresh middleware
+func RequireAuthWithAutoRefresh() gin.HandlerFunc {
+	return AutoRefreshAuthMiddleware()
 }
 
 func OptionalAuth() gin.HandlerFunc {

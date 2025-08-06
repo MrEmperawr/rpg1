@@ -22,21 +22,13 @@ func RunMigrations(db *gorm.DB) error {
 		&auth.User{},
 
 		// SRD models
-		&srd.Language{},
 		&srd.SRDEntry{},
 		&srd.SRDContent{},
-		&srd.Attribute{},
-		&srd.Skill{},
-		&srd.SkillSpecialty{},
-		&srd.Quality{},
-		&srd.Equipment{},
 		&srd.CharacterCreationRule{},
 		&srd.RuleVersion{},
-		&srd.Spell{},
-		&srd.Condition{},
-		&srd.VirtueVice{},
 
 		// Game models
+		&srd.Language{},
 		&game.Campaign{},
 		&game.Character{},
 		&game.Species{},
@@ -48,6 +40,14 @@ func RunMigrations(db *gorm.DB) error {
 		&game.CharacterDerivedStats{},
 		&game.PersonalEquipment{},
 		&game.CharacterPersonalEquipment{},
+		&srd.Attribute{},
+		&srd.Skill{},
+		&srd.SkillSpecialty{},
+		&srd.Quality{},
+		&srd.Equipment{},
+		&srd.Spell{},
+		&srd.Condition{},
+		&srd.VirtueVice{},
 
 		// Shared models
 		&models.Monster{},

@@ -14,12 +14,9 @@ var (
 	pool   *pgxpool.Pool
 )
 
-func Connect() error {
-	supabaseURL := os.Getenv("SUPABASE_URL")
-	supabaseKey := os.Getenv("SUPABASE_ANON_KEY")
-
+func Connect(supabaseURL, supabaseKey string) error {
 	if supabaseURL == "" || supabaseKey == "" {
-		return fmt.Errorf("supabase URL and supabase anon key environment variables are required")
+		return fmt.Errorf("supabase URL and supabase anon key are required")
 	}
 
 	var err error

@@ -17,13 +17,11 @@ func main() {
 		log.Fatalf("failed to load config: %v", err)
 	}
 
-	// Initialize Supabase connection
-	if err := supabase.Connect(); err != nil {
+	if err := supabase.Connect(cfg.SupabaseURL, cfg.SupabaseKey); err != nil {
 		log.Fatalf("failed to connect to Supabase: %v", err)
 	}
 	defer supabase.Close()
 
-	// Initialize database with GORM (using the same connection)
 	if err := database.Connect(cfg.DatabaseURL); err != nil {
 		log.Fatalf("failed to connect to database: %v", err)
 	}
@@ -31,10 +29,8 @@ func main() {
 
 	r := gin.Default()
 
-	// Health check endpoint
 	r.GET("/health", handlers.HealthCheck)
 
-	// Setup API routes
 	routes.SetupAuthRoutes(r)
 	routes.SetupSRDRoutes(r)
 	routes.SetupCharacterRoutes(r)
