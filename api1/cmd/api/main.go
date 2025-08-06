@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"log"
 
 	"github.com/gin-gonic/gin"
@@ -35,6 +36,10 @@ import (
 // @description Type "Bearer" followed by a space and JWT token.
 
 func main() {
+	// Parse command line flags
+	migrate := flag.Bool("migrate", false, "Run database migrations")
+	flag.Parse()
+
 	cfg, err := config.Load()
 	if err != nil {
 		log.Fatalf("failed to load config: %v", err)
@@ -49,6 +54,16 @@ func main() {
 		log.Fatalf("failed to connect to database: %v", err)
 	}
 	defer database.Close()
+
+	// Run migrations if requested
+	if *migrate {
+		log.Println("Running database migrations...")
+		if err := database.RunMigrationsIfNeeded(); err != nil {
+			log.Fatalf("failed to run migrations: %v", err)
+		}
+		log.Println("Migrations completed successfully!")
+		return
+	}
 
 	r := gin.Default()
 

@@ -1,6 +1,9 @@
 package repository
 
 import (
+	"fmt"
+
+	"github.com/google/uuid"
 	"github.com/mremperor-atwork/rpg1/api1/internal/database"
 	"github.com/mremperor-atwork/rpg1/api1/internal/features/srd"
 	"gorm.io/gorm"
@@ -110,4 +113,105 @@ func (r *SRDRepository) GetAllContent(category, search string, limit, offset int
 
 	err := query.Order("srd_entries.category, srd_entries.title").Find(&content).Error
 	return content, err
+}
+
+func (r *SRDRepository) CreateEntry(entry *srd.SRDEntry) (*srd.SRDEntry, error) {
+	// Generate UUID in Go to avoid LastInsertId issues with PostgreSQL
+	if entry.ID == uuid.Nil {
+		entry.ID = uuid.New()
+	}
+
+	err := r.db.Create(entry).Error
+	if err != nil {
+		return nil, fmt.Errorf("failed to create SRD entry: %w", err)
+	}
+
+	return entry, nil
+}
+
+func (r *SRDRepository) UpdateEntry(entry *srd.SRDEntry) (*srd.SRDEntry, error) {
+	var existingEntry srd.SRDEntry
+	err := r.db.Where("id = ?", entry.ID).First(&existingEntry).Error
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return nil, fmt.Errorf("entry not found")
+		}
+		return nil, err
+	}
+
+	err = r.db.Model(&existingEntry).Updates(map[string]interface{}{
+		"title":     entry.Title,
+		"category":  entry.Category,
+		"version":   entry.Version,
+		"is_active": entry.IsActive,
+	}).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	// Return the updated entry
+	return &existingEntry, nil
+}
+
+func (r *SRDRepository) DeleteEntry(id string) error {
+	var entry srd.SRDEntry
+	err := r.db.Where("id = ?", id).First(&entry).Error
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return fmt.Errorf("entry not found")
+		}
+		return err
+	}
+
+	return r.db.Delete(&entry).Error
+}
+
+func (r *SRDRepository) CreateContent(content *srd.SRDContent) (*srd.SRDContent, error) {
+	// Generate UUID in Go to avoid LastInsertId issues with PostgreSQL
+	if content.ID == uuid.Nil {
+		content.ID = uuid.New()
+	}
+
+	err := r.db.Create(content).Error
+	if err != nil {
+		return nil, err
+	}
+	return content, nil
+}
+
+func (r *SRDRepository) UpdateContentByTitle(title string, content *srd.SRDContent) (*srd.SRDContent, error) {
+	var existingContent srd.SRDContent
+	err := r.db.Joins("JOIN srd_entries ON srd_content.entry_id = srd_entries.id").
+		Where("srd_entries.title = ?", title).
+		First(&existingContent).Error
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return nil, fmt.Errorf("content not found")
+		}
+		return nil, err
+	}
+
+	content.ID = existingContent.ID
+	content.EntryID = existingContent.EntryID
+	err = r.db.Save(content).Error
+	if err != nil {
+		return nil, err
+	}
+	return content, nil
+}
+
+func (r *SRDRepository) DeleteContent(title string) error {
+	var content srd.SRDContent
+	err := r.db.Joins("JOIN srd_entries ON srd_content.entry_id = srd_entries.id").
+		Where("srd_entries.title = ?", title).
+		First(&content).Error
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return fmt.Errorf("content not found")
+		}
+		return err
+	}
+
+	return r.db.Delete(&content).Error
 }

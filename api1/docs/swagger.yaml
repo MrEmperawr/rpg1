@@ -558,6 +558,23 @@ definitions:
       updated_at:
         type: string
     type: object
+  srd.Language:
+    properties:
+      code:
+        description: en, sv, es, fr, de, pl, zh, ja
+        type: string
+      created_at:
+        type: string
+      id:
+        type: string
+      is_active:
+        type: boolean
+      name:
+        description: English, Swedish, Spanish, etc.
+        type: string
+      updated_at:
+        type: string
+    type: object
   srd.Quality:
     properties:
       cost_per_rank:
@@ -580,6 +597,57 @@ definitions:
         type: string
       updated_at:
         type: string
+    type: object
+  srd.SRDContent:
+    properties:
+      content:
+        type: string
+      created_at:
+        type: string
+      entry:
+        allOf:
+        - $ref: '#/definitions/srd.SRDEntry'
+        description: Relationships
+      entry_id:
+        type: string
+      id:
+        type: string
+      is_active:
+        type: boolean
+      language:
+        $ref: '#/definitions/srd.Language'
+      language_id:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  srd.SRDEntry:
+    properties:
+      category:
+        description: Attributes, Skills, Qualities, etc.
+        type: string
+      content:
+        items:
+          $ref: '#/definitions/srd.SRDContent'
+        type: array
+      created_at:
+        type: string
+      created_by:
+        type: string
+      creator:
+        allOf:
+        - $ref: '#/definitions/models.User'
+        description: Relationships
+      id:
+        type: string
+      is_active:
+        type: boolean
+      title:
+        type: string
+      updated_at:
+        type: string
+      version:
+        type: integer
     type: object
   srd.Skill:
     properties:
@@ -1866,7 +1934,80 @@ paths:
       summary: Get SRD content
       tags:
       - srd
+    post:
+      consumes:
+      - application/json
+      description: Create new SRD (System Reference Document) content
+      parameters:
+      - description: SRD Content data
+        in: body
+        name: content
+        required: true
+        schema:
+          $ref: '#/definitions/srd.SRDContent'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/handlers.SRDContentResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Create new SRD content
+      tags:
+      - srd
   /api/srd/content/{title}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete SRD (System Reference Document) content
+      parameters:
+      - description: Content Title
+        in: path
+        name: title
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.DeleteResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete SRD content
+      tags:
+      - srd
     get:
       consumes:
       - application/json
@@ -1893,6 +2034,50 @@ paths:
           schema:
             $ref: '#/definitions/handlers.ErrorResponse'
       summary: Get SRD content by title
+      tags:
+      - srd
+    put:
+      consumes:
+      - application/json
+      description: Update existing SRD (System Reference Document) content
+      parameters:
+      - description: Content Title
+        in: path
+        name: title
+        required: true
+        type: string
+      - description: Updated SRD Content data
+        in: body
+        name: content
+        required: true
+        schema:
+          $ref: '#/definitions/srd.SRDContent'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.SRDContentResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update SRD content
       tags:
       - srd
   /api/srd/entries:
@@ -1932,7 +2117,80 @@ paths:
       summary: Get SRD entries
       tags:
       - srd
+    post:
+      consumes:
+      - application/json
+      description: Create a new SRD (System Reference Document) entry
+      parameters:
+      - description: SRD Entry data
+        in: body
+        name: entry
+        required: true
+        schema:
+          $ref: '#/definitions/srd.SRDEntry'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/handlers.SRDEntryResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Create a new SRD entry
+      tags:
+      - srd
   /api/srd/entries/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete an SRD (System Reference Document) entry
+      parameters:
+      - description: SRD Entry ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.DeleteResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete an SRD entry
+      tags:
+      - srd
     get:
       consumes:
       - application/json
@@ -1959,6 +2217,50 @@ paths:
           schema:
             $ref: '#/definitions/handlers.ErrorResponse'
       summary: Get SRD entry by ID
+      tags:
+      - srd
+    put:
+      consumes:
+      - application/json
+      description: Update an existing SRD (System Reference Document) entry
+      parameters:
+      - description: SRD Entry ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Updated SRD Entry data
+        in: body
+        name: entry
+        required: true
+        schema:
+          $ref: '#/definitions/srd.SRDEntry'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.SRDEntryResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update an SRD entry
       tags:
       - srd
   /api/srd/entries/category/{category}:

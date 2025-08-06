@@ -5,16 +5,22 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
+	"github.com/mremperor-atwork/rpg1/api1/internal/features/srd"
+	"github.com/mremperor-atwork/rpg1/api1/internal/middleware"
+	"github.com/mremperor-atwork/rpg1/api1/internal/models"
 	"github.com/mremperor-atwork/rpg1/api1/internal/repository"
 )
 
 type SRDHandlers struct {
-	srdRepo *repository.SRDRepository
+	srdRepo  *repository.SRDRepository
+	userRepo *repository.UserRepository
 }
 
 func NewSRDHandlers() *SRDHandlers {
 	return &SRDHandlers{
-		srdRepo: repository.NewSRDRepository(),
+		srdRepo:  repository.NewSRDRepository(),
+		userRepo: repository.NewUserRepository(),
 	}
 }
 
@@ -291,6 +297,313 @@ func (h *SRDHandlers) GetSRDContentByTitle(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{
 		"content": content,
+	})
+}
+
+// CreateSRDEntry godoc
+// @Summary Create a new SRD entry
+// @Description Create a new SRD (System Reference Document) entry
+// @Tags srd
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param entry body srd.SRDEntry true "SRD Entry data"
+// @Success 201 {object} SRDEntryResponse
+// @Failure 400 {object} ErrorResponse
+// @Failure 401 {object} ErrorResponse
+// @Failure 500 {object} ErrorResponse
+// @Router /api/srd/entries [post]
+func (h *SRDHandlers) CreateSRDEntry(c *gin.Context) {
+	var entry srd.SRDEntry
+	if err := c.ShouldBindJSON(&entry); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Invalid request body",
+		})
+		return
+	}
+
+	// Get the authenticated user from context
+	authUser, exists := middleware.GetUserFromContext(c)
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"error": "User not authenticated",
+		})
+		return
+	}
+
+	// Parse the user ID from the JWT token
+	userID, err := uuid.Parse(authUser.ID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Invalid user ID format",
+		})
+		return
+	}
+
+	// Check if user exists in our local database, if not create them
+	localUser, err := h.userRepo.GetUserByID(userID)
+	if err != nil {
+		// User doesn't exist, create them
+		localUser = &models.User{
+			ID:          userID,
+			Email:       authUser.Email,
+			DisplayName: authUser.Email, // Use email as display name for now
+		}
+
+		if err := h.userRepo.CreateUser(localUser); err != nil {
+			// If creation fails, try to get the user again (might have been created by another request)
+			localUser, err = h.userRepo.GetUserByID(userID)
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{
+					"error": "Failed to create or retrieve local user",
+				})
+				return
+			}
+		}
+	}
+
+	// Set the CreatedBy field
+	entry.CreatedBy = localUser.ID
+
+	createdEntry, err := h.srdRepo.CreateEntry(&entry)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to create SRD entry",
+		})
+		return
+	}
+
+	c.JSON(http.StatusCreated, gin.H{
+		"entry": createdEntry,
+	})
+}
+
+// UpdateSRDEntry godoc
+// @Summary Update an SRD entry
+// @Description Update an existing SRD (System Reference Document) entry
+// @Tags srd
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path string true "SRD Entry ID"
+// @Param entry body srd.SRDEntry true "Updated SRD Entry data"
+// @Success 200 {object} SRDEntryResponse
+// @Failure 400 {object} ErrorResponse
+// @Failure 401 {object} ErrorResponse
+// @Failure 404 {object} ErrorResponse
+// @Failure 500 {object} ErrorResponse
+// @Router /api/srd/entries/{id} [put]
+func (h *SRDHandlers) UpdateSRDEntry(c *gin.Context) {
+	id := c.Param("id")
+	if id == "" {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Entry ID is required",
+		})
+		return
+	}
+
+	var entry srd.SRDEntry
+	if err := c.ShouldBindJSON(&entry); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Invalid request body",
+		})
+		return
+	}
+
+	entryID, err := uuid.Parse(id)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Invalid entry ID format",
+		})
+		return
+	}
+	entry.ID = entryID
+	updatedEntry, err := h.srdRepo.UpdateEntry(&entry)
+	if err != nil {
+		if err.Error() == "entry not found" {
+			c.JSON(http.StatusNotFound, gin.H{
+				"error": "SRD entry not found",
+			})
+		} else {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error": "Failed to update SRD entry",
+			})
+		}
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"entry": updatedEntry,
+	})
+}
+
+// DeleteSRDEntry godoc
+// @Summary Delete an SRD entry
+// @Description Delete an SRD (System Reference Document) entry
+// @Tags srd
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path string true "SRD Entry ID"
+// @Success 200 {object} DeleteResponse
+// @Failure 400 {object} ErrorResponse
+// @Failure 401 {object} ErrorResponse
+// @Failure 404 {object} ErrorResponse
+// @Failure 500 {object} ErrorResponse
+// @Router /api/srd/entries/{id} [delete]
+func (h *SRDHandlers) DeleteSRDEntry(c *gin.Context) {
+	id := c.Param("id")
+	if id == "" {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Entry ID is required",
+		})
+		return
+	}
+
+	err := h.srdRepo.DeleteEntry(id)
+	if err != nil {
+		if err.Error() == "entry not found" {
+			c.JSON(http.StatusNotFound, gin.H{
+				"error": "SRD entry not found",
+			})
+		} else {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error": "Failed to delete SRD entry",
+			})
+		}
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "SRD entry deleted successfully",
+	})
+}
+
+// CreateSRDContent godoc
+// @Summary Create new SRD content
+// @Description Create new SRD (System Reference Document) content
+// @Tags srd
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param content body srd.SRDContent true "SRD Content data"
+// @Success 201 {object} SRDContentResponse
+// @Failure 400 {object} ErrorResponse
+// @Failure 401 {object} ErrorResponse
+// @Failure 500 {object} ErrorResponse
+// @Router /api/srd/content [post]
+func (h *SRDHandlers) CreateSRDContent(c *gin.Context) {
+	var content srd.SRDContent
+	if err := c.ShouldBindJSON(&content); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Invalid request body",
+		})
+		return
+	}
+
+	createdContent, err := h.srdRepo.CreateContent(&content)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to create SRD content",
+		})
+		return
+	}
+
+	c.JSON(http.StatusCreated, gin.H{
+		"content": createdContent,
+	})
+}
+
+// UpdateSRDContent godoc
+// @Summary Update SRD content
+// @Description Update existing SRD (System Reference Document) content
+// @Tags srd
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param title path string true "Content Title"
+// @Param content body srd.SRDContent true "Updated SRD Content data"
+// @Success 200 {object} SRDContentResponse
+// @Failure 400 {object} ErrorResponse
+// @Failure 401 {object} ErrorResponse
+// @Failure 404 {object} ErrorResponse
+// @Failure 500 {object} ErrorResponse
+// @Router /api/srd/content/{title} [put]
+func (h *SRDHandlers) UpdateSRDContent(c *gin.Context) {
+	title := c.Param("title")
+	if title == "" {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Content title is required",
+		})
+		return
+	}
+
+	var content srd.SRDContent
+	if err := c.ShouldBindJSON(&content); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Invalid request body",
+		})
+		return
+	}
+
+	updatedContent, err := h.srdRepo.UpdateContentByTitle(title, &content)
+	if err != nil {
+		if err.Error() == "content not found" {
+			c.JSON(http.StatusNotFound, gin.H{
+				"error": "SRD content not found",
+			})
+		} else {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error": "Failed to update SRD content",
+			})
+		}
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"content": updatedContent,
+	})
+}
+
+// DeleteSRDContent godoc
+// @Summary Delete SRD content
+// @Description Delete SRD (System Reference Document) content
+// @Tags srd
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param title path string true "Content Title"
+// @Success 200 {object} DeleteResponse
+// @Failure 400 {object} ErrorResponse
+// @Failure 401 {object} ErrorResponse
+// @Failure 404 {object} ErrorResponse
+// @Failure 500 {object} ErrorResponse
+// @Router /api/srd/content/{title} [delete]
+func (h *SRDHandlers) DeleteSRDContent(c *gin.Context) {
+	title := c.Param("title")
+	if title == "" {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Content title is required",
+		})
+		return
+	}
+
+	err := h.srdRepo.DeleteContent(title)
+	if err != nil {
+		if err.Error() == "content not found" {
+			c.JSON(http.StatusNotFound, gin.H{
+				"error": "SRD content not found",
+			})
+		} else {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error": "Failed to delete SRD content",
+			})
+		}
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "SRD content deleted successfully",
 	})
 }
 
