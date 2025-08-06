@@ -18,6 +18,19 @@ func NewSRDHandlers() *SRDHandlers {
 	}
 }
 
+// GetSRDEntries godoc
+// @Summary Get SRD entries
+// @Description Retrieve SRD (System Reference Document) entries with optional filtering and pagination
+// @Tags srd
+// @Accept json
+// @Produce json
+// @Param category query string false "Filter by category"
+// @Param search query string false "Search term"
+// @Param limit query int false "Number of entries to return (default: all)"
+// @Param offset query int false "Number of entries to skip (default: 0)"
+// @Success 200 {object} SRDEntriesResponse
+// @Failure 500 {object} ErrorResponse
+// @Router /api/srd/entries [get]
 func (h *SRDHandlers) GetSRDEntries(c *gin.Context) {
 	category := c.Query("category")
 	search := c.Query("search")
@@ -53,6 +66,17 @@ func (h *SRDHandlers) GetSRDEntries(c *gin.Context) {
 	})
 }
 
+// GetSRDEntryByID godoc
+// @Summary Get SRD entry by ID
+// @Description Retrieve a specific SRD entry by its unique identifier
+// @Tags srd
+// @Accept json
+// @Produce json
+// @Param id path string true "SRD Entry ID"
+// @Success 200 {object} SRDEntryResponse
+// @Failure 400 {object} ErrorResponse
+// @Failure 404 {object} ErrorResponse
+// @Router /api/srd/entries/{id} [get]
 func (h *SRDHandlers) GetSRDEntryByID(c *gin.Context) {
 	id := c.Param("id")
 	if id == "" {
@@ -75,6 +99,17 @@ func (h *SRDHandlers) GetSRDEntryByID(c *gin.Context) {
 	})
 }
 
+// GetSRDEntriesByCategory godoc
+// @Summary Get SRD entries by category
+// @Description Retrieve all SRD entries within a specific category
+// @Tags srd
+// @Accept json
+// @Produce json
+// @Param category path string true "Category name"
+// @Success 200 {object} SRDEntriesByCategoryResponse
+// @Failure 400 {object} ErrorResponse
+// @Failure 500 {object} ErrorResponse
+// @Router /api/srd/entries/category/{category} [get]
 func (h *SRDHandlers) GetSRDEntriesByCategory(c *gin.Context) {
 	category := c.Param("category")
 	if category == "" {
@@ -99,6 +134,15 @@ func (h *SRDHandlers) GetSRDEntriesByCategory(c *gin.Context) {
 	})
 }
 
+// GetSRDCategories godoc
+// @Summary Get SRD categories
+// @Description Retrieve all available SRD categories
+// @Tags srd
+// @Accept json
+// @Produce json
+// @Success 200 {object} SRDCategoriesResponse
+// @Failure 500 {object} ErrorResponse
+// @Router /api/srd/categories [get]
 func (h *SRDHandlers) GetSRDCategories(c *gin.Context) {
 	categories, err := h.srdRepo.GetCategories()
 	if err != nil {
@@ -114,6 +158,19 @@ func (h *SRDHandlers) GetSRDCategories(c *gin.Context) {
 	})
 }
 
+// SearchSRDEntries godoc
+// @Summary Search SRD entries
+// @Description Search SRD entries using a query string with optional pagination
+// @Tags srd
+// @Accept json
+// @Produce json
+// @Param q query string true "Search query"
+// @Param limit query int false "Number of entries to return (default: all)"
+// @Param offset query int false "Number of entries to skip (default: 0)"
+// @Success 200 {object} SRDSearchResponse
+// @Failure 400 {object} ErrorResponse
+// @Failure 500 {object} ErrorResponse
+// @Router /api/srd/search [get]
 func (h *SRDHandlers) SearchSRDEntries(c *gin.Context) {
 	query := c.Query("q")
 	if query == "" {
@@ -156,6 +213,19 @@ func (h *SRDHandlers) SearchSRDEntries(c *gin.Context) {
 	})
 }
 
+// GetSRDContent godoc
+// @Summary Get SRD content
+// @Description Retrieve SRD content with optional filtering and pagination
+// @Tags srd
+// @Accept json
+// @Produce json
+// @Param category query string false "Filter by category"
+// @Param search query string false "Search term"
+// @Param limit query int false "Number of content items to return (default: all)"
+// @Param offset query int false "Number of content items to skip (default: 0)"
+// @Success 200 {object} SRDContentResponse
+// @Failure 500 {object} ErrorResponse
+// @Router /api/srd/content [get]
 func (h *SRDHandlers) GetSRDContent(c *gin.Context) {
 	category := c.Query("category")
 	search := c.Query("search")
@@ -191,6 +261,17 @@ func (h *SRDHandlers) GetSRDContent(c *gin.Context) {
 	})
 }
 
+// GetSRDContentByTitle godoc
+// @Summary Get SRD content by title
+// @Description Retrieve specific SRD content by its title
+// @Tags srd
+// @Accept json
+// @Produce json
+// @Param title path string true "Content title"
+// @Success 200 {object} SRDContentByTitleResponse
+// @Failure 400 {object} ErrorResponse
+// @Failure 404 {object} ErrorResponse
+// @Router /api/srd/content/{title} [get]
 func (h *SRDHandlers) GetSRDContentByTitle(c *gin.Context) {
 	title := c.Param("title")
 	if title == "" {
@@ -211,4 +292,40 @@ func (h *SRDHandlers) GetSRDContentByTitle(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"content": content,
 	})
+}
+
+// SRD Response models for Swagger documentation
+type SRDEntriesResponse struct {
+	Entries []interface{} `json:"entries"`
+	Count   int           `json:"count" example:"10"`
+}
+
+type SRDEntryResponse struct {
+	Entry interface{} `json:"entry"`
+}
+
+type SRDEntriesByCategoryResponse struct {
+	Category string        `json:"category" example:"spells"`
+	Entries  []interface{} `json:"entries"`
+	Count    int           `json:"count" example:"5"`
+}
+
+type SRDCategoriesResponse struct {
+	Categories []interface{} `json:"categories"`
+	Count      int           `json:"count" example:"8"`
+}
+
+type SRDSearchResponse struct {
+	Query   string        `json:"query" example:"fireball"`
+	Entries []interface{} `json:"entries"`
+	Count   int           `json:"count" example:"3"`
+}
+
+type SRDContentResponse struct {
+	Content []interface{} `json:"content"`
+	Count   int           `json:"count" example:"15"`
+}
+
+type SRDContentByTitleResponse struct {
+	Content interface{} `json:"content"`
 }

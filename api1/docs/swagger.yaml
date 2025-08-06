@@ -1,0 +1,2467 @@
+basePath: /
+definitions:
+  game.CharacterAttribute:
+    properties:
+      attribute:
+        $ref: '#/definitions/srd.Attribute'
+      attribute_id:
+        type: string
+      character:
+        allOf:
+        - $ref: '#/definitions/models.Character'
+        description: Relationships
+      character_id:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: string
+      updated_at:
+        type: string
+      value:
+        type: integer
+    type: object
+  game.CharacterDerivedStats:
+    properties:
+      carrying_capacity:
+        type: integer
+      character:
+        allOf:
+        - $ref: '#/definitions/models.Character'
+        description: Relationships
+      character_id:
+        type: string
+      created_at:
+        type: string
+      dodge:
+        type: integer
+      health:
+        type: integer
+      id:
+        type: string
+      initiative_bonus:
+        type: integer
+      mental_resistance:
+        type: integer
+      perception:
+        type: integer
+      physical_resistance:
+        type: integer
+      tolerance_max:
+        type: integer
+      updated_at:
+        type: string
+      willpower_bonus:
+        type: integer
+      willpower_points:
+        type: integer
+    type: object
+  game.CharacterEquipment:
+    properties:
+      character:
+        allOf:
+        - $ref: '#/definitions/models.Character'
+        description: Relationships
+      character_id:
+        type: string
+      created_at:
+        type: string
+      equipment:
+        $ref: '#/definitions/srd.Equipment'
+      equipment_id:
+        type: string
+      id:
+        type: string
+      quantity:
+        type: integer
+      updated_at:
+        type: string
+    type: object
+  game.CharacterPersonalEquipment:
+    properties:
+      character:
+        allOf:
+        - $ref: '#/definitions/models.Character'
+        description: Relationships
+      character_id:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: string
+      personal_equipment:
+        $ref: '#/definitions/game.PersonalEquipment'
+      personal_equipment_id:
+        type: string
+      quantity:
+        type: integer
+      updated_at:
+        type: string
+    type: object
+  game.CharacterQuality:
+    properties:
+      character:
+        allOf:
+        - $ref: '#/definitions/models.Character'
+        description: Relationships
+      character_id:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: string
+      quality:
+        $ref: '#/definitions/srd.Quality'
+      quality_id:
+        type: string
+      rating:
+        type: integer
+      updated_at:
+        type: string
+    type: object
+  game.CharacterSkill:
+    properties:
+      character:
+        allOf:
+        - $ref: '#/definitions/models.Character'
+        description: Relationships
+      character_id:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: string
+      skill:
+        $ref: '#/definitions/srd.Skill'
+      skill_id:
+        type: string
+      updated_at:
+        type: string
+      value:
+        type: integer
+    type: object
+  game.CharacterSkillSpecialty:
+    properties:
+      character:
+        allOf:
+        - $ref: '#/definitions/models.Character'
+        description: Relationships
+      character_id:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: string
+      skill_specialty:
+        $ref: '#/definitions/srd.SkillSpecialty'
+      skill_specialty_id:
+        type: string
+    type: object
+  game.PersonalEquipment:
+    properties:
+      capacity:
+        description: For items with capacity (programs, IC, etc.)
+        type: integer
+      category:
+        description: Carry, Light, Tools, Vision, Communication, Electronics, Clothing,
+          Living, Restraint, Magical aid
+        type: string
+      cost:
+        type: integer
+      createdAt:
+        type: string
+      description:
+        type: string
+      era:
+        description: Medieval, Industrial, Cyber
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      rarity:
+        description: 0=Civilian, 1-3=Restricted, 4-5=Military
+        type: integer
+      rating:
+        description: For items with ratings
+        type: integer
+      size:
+        type: integer
+      special:
+        description: Special properties and effects
+        type: string
+      subcategory:
+        description: Medieval, Industrial, Cyber
+        type: string
+      type:
+        description: Specific type within category
+        type: string
+      updatedAt:
+        type: string
+      weight:
+        type: number
+    type: object
+  handlers.AddSkillSpecialtyRequest:
+    properties:
+      skill_specialty_id:
+        example: 123e4567-e89b-12d3-a456-426614174000
+        type: string
+    type: object
+  handlers.AddSkillSpecialtyResponse:
+    properties:
+      message:
+        example: Character skill specialty added successfully
+        type: string
+    type: object
+  handlers.ChangePasswordRequest:
+    properties:
+      current_password:
+        example: oldpassword123
+        type: string
+      new_password:
+        example: newpassword123
+        minLength: 6
+        type: string
+    required:
+    - current_password
+    - new_password
+    type: object
+  handlers.ChangePasswordResponse:
+    properties:
+      message:
+        example: Password changed successfully
+        type: string
+    type: object
+  handlers.CharacterSearchResponse:
+    properties:
+      characters:
+        items:
+          $ref: '#/definitions/models.Character'
+        type: array
+      count:
+        example: 5
+        type: integer
+      query:
+        example: fighter
+        type: string
+    type: object
+  handlers.CreateUserResponse:
+    properties:
+      message:
+        example: User created successfully
+        type: string
+      user:
+        $ref: '#/definitions/models.User'
+    type: object
+  handlers.DeleteResponse:
+    properties:
+      message:
+        example: Character deleted successfully
+        type: string
+    type: object
+  handlers.ErrorResponse:
+    properties:
+      error:
+        example: Error message
+        type: string
+    type: object
+  handlers.GetCurrentUserResponse:
+    properties:
+      user: {}
+    type: object
+  handlers.GetUserResponse:
+    properties:
+      user:
+        $ref: '#/definitions/models.User'
+    type: object
+  handlers.LoginRequest:
+    properties:
+      email:
+        example: user@example.com
+        type: string
+      password:
+        example: password123
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  handlers.LoginResponse:
+    properties:
+      message:
+        example: Login successful
+        type: string
+      session: {}
+      user: {}
+    type: object
+  handlers.LogoutResponse:
+    properties:
+      message:
+        example: Logout successful
+        type: string
+    type: object
+  handlers.RefreshTokenRequest:
+    properties:
+      refresh_token:
+        example: refresh_token_here
+        type: string
+    required:
+    - refresh_token
+    type: object
+  handlers.RefreshTokenResponse:
+    properties:
+      message:
+        example: Token refreshed successfully
+        type: string
+      session: {}
+      user: {}
+    type: object
+  handlers.RegisterRequest:
+    properties:
+      display_name:
+        example: johndoe
+        type: string
+      email:
+        example: user@example.com
+        type: string
+      first_name:
+        example: John
+        type: string
+      last_name:
+        example: Doe
+        type: string
+      password:
+        example: password123
+        minLength: 6
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  handlers.RegisterResponse:
+    properties:
+      message:
+        example: User registered successfully
+        type: string
+      session: {}
+      user: {}
+    type: object
+  handlers.SRDCategoriesResponse:
+    properties:
+      categories:
+        items: {}
+        type: array
+      count:
+        example: 8
+        type: integer
+    type: object
+  handlers.SRDContentByTitleResponse:
+    properties:
+      content: {}
+    type: object
+  handlers.SRDContentResponse:
+    properties:
+      content:
+        items: {}
+        type: array
+      count:
+        example: 15
+        type: integer
+    type: object
+  handlers.SRDEntriesByCategoryResponse:
+    properties:
+      category:
+        example: spells
+        type: string
+      count:
+        example: 5
+        type: integer
+      entries:
+        items: {}
+        type: array
+    type: object
+  handlers.SRDEntriesResponse:
+    properties:
+      count:
+        example: 10
+        type: integer
+      entries:
+        items: {}
+        type: array
+    type: object
+  handlers.SRDEntryResponse:
+    properties:
+      entry: {}
+    type: object
+  handlers.SRDSearchResponse:
+    properties:
+      count:
+        example: 3
+        type: integer
+      entries:
+        items: {}
+        type: array
+      query:
+        example: fireball
+        type: string
+    type: object
+  handlers.UpdateQuantityResponse:
+    properties:
+      message:
+        example: Quantity updated successfully
+        type: string
+    type: object
+  handlers.UserPreferencesResponse:
+    properties:
+      preferences:
+        additionalProperties: true
+        type: object
+    type: object
+  handlers.UserProfileResponse:
+    properties:
+      profile:
+        $ref: '#/definitions/models.User'
+    type: object
+  handlers.UserSearchResponse:
+    properties:
+      count:
+        example: 5
+        type: integer
+      query:
+        example: john
+        type: string
+      users:
+        items:
+          $ref: '#/definitions/models.User'
+        type: array
+    type: object
+  handlers.UserStatsResponse:
+    properties:
+      stats:
+        additionalProperties: true
+        type: object
+    type: object
+  models.Campaign:
+    properties:
+      created_at:
+        type: string
+      description:
+        type: string
+      era:
+        description: Medieval, Industrial, Cyber, etc.
+        type: string
+      gm_user:
+        allOf:
+        - $ref: '#/definitions/models.User'
+        description: Relationships
+      gm_user_id:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  models.Character:
+    properties:
+      campaign:
+        $ref: '#/definitions/models.Campaign'
+      campaignID:
+        description: One campaign per character
+        type: string
+      concept:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      speciesID:
+        type: string
+      starting_points_option:
+        type: string
+      type:
+        description: PC, NPC
+        type: string
+      updated_at:
+        type: string
+      user:
+        allOf:
+        - $ref: '#/definitions/models.User'
+        description: Relationships
+      userID:
+        type: string
+      vice:
+        type: string
+      virtue:
+        type: string
+    type: object
+  models.User:
+    properties:
+      created_at:
+        type: string
+      display_name:
+        type: string
+      email:
+        type: string
+      first_name:
+        type: string
+      id:
+        type: string
+      last_name:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  srd.Attribute:
+    properties:
+      category:
+        description: Physical, Mental, Social
+        type: string
+      created_at:
+        type: string
+      description:
+        type: string
+      id:
+        type: string
+      name:
+        description: Brawn, Agility, Logic, etc.
+        type: string
+      updated_at:
+        type: string
+    type: object
+  srd.Equipment:
+    properties:
+      category:
+        description: Weapon, Armor, Gear, etc.
+        type: string
+      cost:
+        type: integer
+      created_at:
+        type: string
+      description:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      properties:
+        description: Flexible storage for special properties
+        type: string
+      rarity:
+        description: 1-10
+        type: integer
+      size:
+        type: integer
+      updated_at:
+        type: string
+    type: object
+  srd.Quality:
+    properties:
+      cost_per_rank:
+        description: Quality points or XP cost
+        type: integer
+      created_at:
+        type: string
+      description:
+        type: string
+      id:
+        type: string
+      max_rating:
+        type: integer
+      min_rating:
+        type: integer
+      name:
+        type: string
+      type:
+        description: '"positive" or "negative"'
+        type: string
+      updated_at:
+        type: string
+    type: object
+  srd.Skill:
+    properties:
+      category:
+        description: Combat, Social, Technical, etc.
+        type: string
+      created_at:
+        type: string
+      description:
+        type: string
+      id:
+        type: string
+      is_magical:
+        type: boolean
+      name:
+        description: Athletics, Melee, etc.
+        type: string
+      updated_at:
+        type: string
+    type: object
+  srd.SkillSpecialty:
+    properties:
+      bonus:
+        type: integer
+      created_at:
+        type: string
+      description:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      skill:
+        allOf:
+        - $ref: '#/definitions/srd.Skill'
+        description: Relationships
+      skill_id:
+        type: string
+      type:
+        description: '"typical" or "exotic"'
+        type: string
+      updated_at:
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact:
+    email: support@swagger.io
+    name: API Support
+    url: http://www.swagger.io/support
+  description: A comprehensive RPG game API with authentication, characters, and SRD
+    content.
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  title: RPG API
+  version: "1.0"
+paths:
+  /api/auth/login:
+    post:
+      consumes:
+      - application/json
+      description: Authenticate user and return session token
+      parameters:
+      - description: Login data
+        in: body
+        name: login_data
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.LoginResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      summary: User login
+      tags:
+      - auth
+  /api/auth/logout:
+    post:
+      consumes:
+      - application/json
+      description: Invalidate session token
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.LogoutResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: User logout
+      tags:
+      - auth
+  /api/auth/me:
+    get:
+      consumes:
+      - application/json
+      description: Get the current authenticated user's information
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.GetCurrentUserResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get current user
+      tags:
+      - auth
+  /api/auth/refresh:
+    post:
+      consumes:
+      - application/json
+      description: Refresh the access token using a refresh token
+      parameters:
+      - description: Refresh token
+        in: body
+        name: refresh
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.RefreshTokenRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.RefreshTokenResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      summary: Refresh access token
+      tags:
+      - auth
+  /api/auth/register:
+    post:
+      consumes:
+      - application/json
+      description: Register a new user account
+      parameters:
+      - description: User data
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/models.User'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/handlers.RegisterResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      summary: User registration
+      tags:
+      - auth
+  /api/characters:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve all characters belonging to the authenticated user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Character'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get user's characters
+      tags:
+      - characters
+    post:
+      consumes:
+      - application/json
+      description: Create a new character for the authenticated user
+      parameters:
+      - description: Character data
+        in: body
+        name: character
+        required: true
+        schema:
+          $ref: '#/definitions/models.Character'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.Character'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Create a new character
+      tags:
+      - characters
+  /api/characters/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a character by its ID
+      parameters:
+      - description: Character ID
+        format: uuid
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.DeleteResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete character
+      tags:
+      - characters
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a character by its unique identifier
+      parameters:
+      - description: Character ID
+        format: uuid
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Character'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get character by ID
+      tags:
+      - characters
+    put:
+      consumes:
+      - application/json
+      description: Update an existing character's information
+      parameters:
+      - description: Character ID
+        format: uuid
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Updated character data
+        in: body
+        name: character
+        required: true
+        schema:
+          $ref: '#/definitions/models.Character'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Character'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update character
+      tags:
+      - characters
+  /api/characters/{id}/attributes:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve all attributes for a specific character
+      parameters:
+      - description: Character ID
+        format: uuid
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/game.CharacterAttribute'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get character attributes
+      tags:
+      - characters
+    post:
+      consumes:
+      - application/json
+      description: Set or update a character's attribute value
+      parameters:
+      - description: Character ID
+        format: uuid
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Attribute data
+        in: body
+        name: attribute
+        required: true
+        schema:
+          $ref: '#/definitions/game.CharacterAttribute'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/game.CharacterAttribute'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Set character attribute
+      tags:
+      - characters
+  /api/characters/{id}/attributes/{attributeId}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a character's attribute
+      parameters:
+      - description: Character ID
+        format: uuid
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Attribute ID
+        format: uuid
+        in: path
+        name: attributeId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.DeleteResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete character attribute
+      tags:
+      - characters
+  /api/characters/{id}/derived-stats:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve derived statistics for a specific character
+      parameters:
+      - description: Character ID
+        format: uuid
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/game.CharacterDerivedStats'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get character derived stats
+      tags:
+      - characters
+    post:
+      consumes:
+      - application/json
+      description: Set or update a character's derived statistics
+      parameters:
+      - description: Character ID
+        format: uuid
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Derived stats data
+        in: body
+        name: stats
+        required: true
+        schema:
+          $ref: '#/definitions/game.CharacterDerivedStats'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/game.CharacterDerivedStats'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Set character derived stats
+      tags:
+      - characters
+  /api/characters/{id}/equipment:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve all equipment for a specific character
+      parameters:
+      - description: Character ID
+        format: uuid
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/game.CharacterEquipment'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get character equipment
+      tags:
+      - characters
+    post:
+      consumes:
+      - application/json
+      description: Add equipment to a character's inventory
+      parameters:
+      - description: Character ID
+        format: uuid
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Equipment data
+        in: body
+        name: equipment
+        required: true
+        schema:
+          $ref: '#/definitions/game.CharacterEquipment'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/game.CharacterEquipment'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Add character equipment
+      tags:
+      - characters
+  /api/characters/{id}/equipment/{equipmentId}:
+    delete:
+      consumes:
+      - application/json
+      description: Remove equipment from a character's inventory
+      parameters:
+      - description: Character ID
+        format: uuid
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Equipment ID
+        format: uuid
+        in: path
+        name: equipmentId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.DeleteResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Remove character equipment
+      tags:
+      - characters
+  /api/characters/{id}/equipment/{equipmentId}/quantity/{quantity}:
+    put:
+      consumes:
+      - application/json
+      description: Update the quantity of equipment for a character
+      parameters:
+      - description: Character ID
+        format: uuid
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Equipment ID
+        format: uuid
+        in: path
+        name: equipmentId
+        required: true
+        type: string
+      - description: New quantity
+        in: path
+        name: quantity
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.UpdateQuantityResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update character equipment quantity
+      tags:
+      - characters
+  /api/characters/{id}/personal-equipment:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve all personal equipment for a specific character
+      parameters:
+      - description: Character ID
+        format: uuid
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/game.CharacterPersonalEquipment'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get character personal equipment
+      tags:
+      - characters
+    post:
+      consumes:
+      - application/json
+      description: Add personal equipment to a character's inventory
+      parameters:
+      - description: Character ID
+        format: uuid
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Personal equipment data
+        in: body
+        name: equipment
+        required: true
+        schema:
+          $ref: '#/definitions/game.CharacterPersonalEquipment'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/game.CharacterPersonalEquipment'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Add character personal equipment
+      tags:
+      - characters
+  /api/characters/{id}/personal-equipment/{equipmentId}:
+    delete:
+      consumes:
+      - application/json
+      description: Remove personal equipment from a character's inventory
+      parameters:
+      - description: Character ID
+        format: uuid
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Equipment ID
+        format: uuid
+        in: path
+        name: equipmentId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.DeleteResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Remove character personal equipment
+      tags:
+      - characters
+  /api/characters/{id}/personal-equipment/{equipmentId}/quantity/{quantity}:
+    put:
+      consumes:
+      - application/json
+      description: Update the quantity of personal equipment for a character
+      parameters:
+      - description: Character ID
+        format: uuid
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Equipment ID
+        format: uuid
+        in: path
+        name: equipmentId
+        required: true
+        type: string
+      - description: New quantity
+        in: path
+        name: quantity
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.UpdateQuantityResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update character personal equipment quantity
+      tags:
+      - characters
+  /api/characters/{id}/qualities:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve all qualities for a specific character
+      parameters:
+      - description: Character ID
+        format: uuid
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/game.CharacterQuality'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get character qualities
+      tags:
+      - characters
+    post:
+      consumes:
+      - application/json
+      description: Set or update a character's quality
+      parameters:
+      - description: Character ID
+        format: uuid
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Quality data
+        in: body
+        name: quality
+        required: true
+        schema:
+          $ref: '#/definitions/game.CharacterQuality'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/game.CharacterQuality'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Set character quality
+      tags:
+      - characters
+  /api/characters/{id}/qualities/{qualityId}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a character's quality
+      parameters:
+      - description: Character ID
+        format: uuid
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Quality ID
+        format: uuid
+        in: path
+        name: qualityId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.DeleteResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete character quality
+      tags:
+      - characters
+  /api/characters/{id}/skill-specialties:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve all skill specialties for a specific character
+      parameters:
+      - description: Character ID
+        format: uuid
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/game.CharacterSkillSpecialty'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get character skill specialties
+      tags:
+      - characters
+    post:
+      consumes:
+      - application/json
+      description: Add a skill specialty to a character
+      parameters:
+      - description: Character ID
+        format: uuid
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Skill specialty data
+        in: body
+        name: specialty
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.AddSkillSpecialtyRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.AddSkillSpecialtyResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Add character skill specialty
+      tags:
+      - characters
+  /api/characters/{id}/skill-specialties/{specialtyId}:
+    delete:
+      consumes:
+      - application/json
+      description: Remove a skill specialty from a character
+      parameters:
+      - description: Character ID
+        format: uuid
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Specialty ID
+        format: uuid
+        in: path
+        name: specialtyId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.DeleteResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Remove character skill specialty
+      tags:
+      - characters
+  /api/characters/{id}/skills:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve all skills for a specific character
+      parameters:
+      - description: Character ID
+        format: uuid
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/game.CharacterSkill'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get character skills
+      tags:
+      - characters
+    post:
+      consumes:
+      - application/json
+      description: Set or update a character's skill value
+      parameters:
+      - description: Character ID
+        format: uuid
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Skill data
+        in: body
+        name: skill
+        required: true
+        schema:
+          $ref: '#/definitions/game.CharacterSkill'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/game.CharacterSkill'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Set character skill
+      tags:
+      - characters
+  /api/characters/{id}/skills/{skillId}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a character's skill
+      parameters:
+      - description: Character ID
+        format: uuid
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Skill ID
+        format: uuid
+        in: path
+        name: skillId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.DeleteResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete character skill
+      tags:
+      - characters
+  /api/characters/campaign/{campaignId}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve all characters in a specific campaign
+      parameters:
+      - description: Campaign ID
+        format: uuid
+        in: path
+        name: campaignId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Character'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get campaign characters
+      tags:
+      - characters
+  /api/characters/search:
+    get:
+      consumes:
+      - application/json
+      description: Search characters by name or other criteria
+      parameters:
+      - description: Search query
+        in: query
+        name: q
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.CharacterSearchResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Search characters
+      tags:
+      - characters
+  /api/srd/categories:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve all available SRD categories
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.SRDCategoriesResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      summary: Get SRD categories
+      tags:
+      - srd
+  /api/srd/content:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve SRD content with optional filtering and pagination
+      parameters:
+      - description: Filter by category
+        in: query
+        name: category
+        type: string
+      - description: Search term
+        in: query
+        name: search
+        type: string
+      - description: 'Number of content items to return (default: all)'
+        in: query
+        name: limit
+        type: integer
+      - description: 'Number of content items to skip (default: 0)'
+        in: query
+        name: offset
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.SRDContentResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      summary: Get SRD content
+      tags:
+      - srd
+  /api/srd/content/{title}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve specific SRD content by its title
+      parameters:
+      - description: Content title
+        in: path
+        name: title
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.SRDContentByTitleResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      summary: Get SRD content by title
+      tags:
+      - srd
+  /api/srd/entries:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve SRD (System Reference Document) entries with optional
+        filtering and pagination
+      parameters:
+      - description: Filter by category
+        in: query
+        name: category
+        type: string
+      - description: Search term
+        in: query
+        name: search
+        type: string
+      - description: 'Number of entries to return (default: all)'
+        in: query
+        name: limit
+        type: integer
+      - description: 'Number of entries to skip (default: 0)'
+        in: query
+        name: offset
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.SRDEntriesResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      summary: Get SRD entries
+      tags:
+      - srd
+  /api/srd/entries/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a specific SRD entry by its unique identifier
+      parameters:
+      - description: SRD Entry ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.SRDEntryResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      summary: Get SRD entry by ID
+      tags:
+      - srd
+  /api/srd/entries/category/{category}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve all SRD entries within a specific category
+      parameters:
+      - description: Category name
+        in: path
+        name: category
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.SRDEntriesByCategoryResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      summary: Get SRD entries by category
+      tags:
+      - srd
+  /api/srd/search:
+    get:
+      consumes:
+      - application/json
+      description: Search SRD entries using a query string with optional pagination
+      parameters:
+      - description: Search query
+        in: query
+        name: q
+        required: true
+        type: string
+      - description: 'Number of entries to return (default: all)'
+        in: query
+        name: limit
+        type: integer
+      - description: 'Number of entries to skip (default: 0)'
+        in: query
+        name: offset
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.SRDSearchResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      summary: Search SRD entries
+      tags:
+      - srd
+  /api/users:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve all users in the system
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.User'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get all users
+      tags:
+      - users
+    post:
+      consumes:
+      - application/json
+      description: Create a new user account
+      parameters:
+      - description: User data
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/models.User'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/handlers.CreateUserResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Create a new user
+      tags:
+      - users
+  /api/users/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a user by their ID
+      parameters:
+      - description: User ID
+        format: uuid
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.DeleteResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete user
+      tags:
+      - users
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a user by their unique identifier
+      parameters:
+      - description: User ID
+        format: uuid
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.GetUserResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get user by ID
+      tags:
+      - users
+    put:
+      consumes:
+      - application/json
+      description: Update an existing user's information
+      parameters:
+      - description: User ID
+        format: uuid
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Updated user data
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/models.User'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.User'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update user
+      tags:
+      - users
+  /api/users/{id}/activity:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a user's activity history
+      parameters:
+      - description: User ID
+        format: uuid
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: 'Number of activities to return (default: 10)'
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              additionalProperties: true
+              type: object
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get user activity
+      tags:
+      - users
+  /api/users/{id}/change-password:
+    post:
+      consumes:
+      - application/json
+      description: Change a user's password
+      parameters:
+      - description: User ID
+        format: uuid
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Password change data
+        in: body
+        name: password
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.ChangePasswordRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.ChangePasswordResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Change user password
+      tags:
+      - users
+  /api/users/{id}/preferences:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a user's preferences and settings
+      parameters:
+      - description: User ID
+        format: uuid
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.UserPreferencesResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get user preferences
+      tags:
+      - users
+    put:
+      consumes:
+      - application/json
+      description: Update a user's preferences and settings
+      parameters:
+      - description: User ID
+        format: uuid
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: User preferences
+        in: body
+        name: preferences
+        required: true
+        schema: {}
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.UserPreferencesResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update user preferences
+      tags:
+      - users
+  /api/users/{id}/profile:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a user's public profile information
+      parameters:
+      - description: User ID
+        format: uuid
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.UserProfileResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get user profile
+      tags:
+      - users
+  /api/users/{id}/stats:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve statistics for a specific user
+      parameters:
+      - description: User ID
+        format: uuid
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.UserStatsResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get user statistics
+      tags:
+      - users
+  /api/users/me:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve the currently authenticated user's information
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.GetUserResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get current user
+      tags:
+      - users
+  /api/users/search:
+    get:
+      consumes:
+      - application/json
+      description: Search users by name, email, or other criteria
+      parameters:
+      - description: Search query
+        in: query
+        name: q
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.UserSearchResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Search users
+      tags:
+      - users
+securityDefinitions:
+  BearerAuth:
+    description: Type "Bearer" followed by a space and JWT token.
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"
